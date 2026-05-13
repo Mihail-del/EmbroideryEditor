@@ -1,4 +1,4 @@
-package ua.univercity;
+package editor;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -24,6 +24,7 @@ public class EmbroideryEditor extends Application {
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
+        primaryStage.setAlwaysOnTop(true);
         primaryStage.show();
     }
 

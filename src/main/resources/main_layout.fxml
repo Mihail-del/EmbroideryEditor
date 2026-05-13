@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane fx:id="mainApplicationLayout" prefHeight="380.0" prefWidth="492.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="editor.MainController">
+
+    <BorderPane fx:id="mainWorkspace">
+
+        <top>
+            <HBox spacing="20" styleClass="top-nav-bar">
+                <Label styleClass="app-title" text="Vyshyvanka Editor" />
+                <Label styleClass="nav-link, active-nav" text="Create" />
+                <Label styleClass="nav-link" text="Save" />
+                <Label styleClass="nav-link" text="Main Menu" />
+                <Label styleClass="nav-link" text="Info" />
+            </HBox>
+        </top>
+
+        <left>
+            <VBox spacing="30" styleClass="left-sidebar">
+                <Label styleClass="section-title" text="Symmetry Controls" />
+                <Label text="Horizontal" />
+                <Label text="Vertical" />
+                <Label text="Full Pattern" />
+
+                <Label styleClass="section-title" text="Active Thread" />
+                <Label styleClass="section-title" text="Grid Size" />
+                <Label text="-  (64 x 64)  +" />
+            </VBox>
+        </left>
+
+        <center>
+            <StackPane styleClass="main-canvas-view">
+                <Label text="Main Canvas (64x64) " textFill="#888888" />
+            </StackPane>
+        </center>
+
+        <bottom>
+            <HBox spacing="40" styleClass="bottom-toolbar">
+                <Label text="Color Picker" />
+                <Label text="Clear Field" />
+                <Label text="Eraser" />
+                <Label styleClass="animate-button" text="Animate" />
+            </HBox>
+        </bottom>
+
+    </BorderPane>
+
+    <VBox fx:id="loadingScreen" styleClass="loading-screen">
+        <Label styleClass="loading-text" text="LOADING WORKSPACE..." />
+    </VBox>
+
+</StackPane>
