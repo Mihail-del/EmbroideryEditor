@@ -12,7 +12,7 @@
                 <Label styleClass="app-title" text="Vyshyvanka Editor" />
                 <Label styleClass="nav-link, active-nav" text="Create" />
                 <Label styleClass="nav-link" text="Save" />
-                <Label styleClass="nav-link" text="Main Menu" />
+                <Label styleClass="nav-link" text="Open" />
                 <Label styleClass="nav-link" text="Info" />
             </HBox>
         </top>
