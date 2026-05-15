@@ -156,13 +156,13 @@
     -fx-padding: 10px 20px;
     -fx-background-radius: 8px;
     -fx-min-width: 160px;
-    -fx-alignment: center-right;
+    -fx-alignment: center-left;
 }
 
 .symmetry-text {
     -fx-text-fill: -fx-text-primary;
     -fx-font-size: 13px;
-    -fx-alignment: center-right;
+    -fx-alignment: center-left;
 }
 
 .grid-size-btn {

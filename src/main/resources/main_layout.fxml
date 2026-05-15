@@ -26,19 +26,25 @@
             <VBox spacing="30" styleClass="left-sidebar">
                 <VBox styleClass="symmetry-controls" spacing="10">
                     <Label styleClass="section-title" text="Symmetry Controls" />
+
                     <HBox fx:id="horizontalSymmetryBox" styleClass="symmetry-button" spacing="10" alignment="CENTER_LEFT">
                         <Label fx:id="horizontalSymmetryBtn" styleClass="symmetry-text" text="Horizontal" />
+
+                        <Region HBox.hgrow="ALWAYS" />
+
                         <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
                             <image><Image url="@/icons/horizont.png"/></image>
                         </ImageView>
-                        <Region HBox.hgrow="ALWAYS" />
                     </HBox>
+
                     <HBox fx:id="verticalSymmetryBox" styleClass="symmetry-button" spacing="10" alignment="CENTER_LEFT">
                         <Label fx:id="verticalSymmetryBtn" styleClass="symmetry-text" text="Vertical" />
+
+                        <Region HBox.hgrow="ALWAYS" />
+
                         <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
                             <image><Image url="@/icons/vertical.png"/></image>
                         </ImageView>
-                        <Region HBox.hgrow="ALWAYS" />
                     </HBox>
                 </VBox>
 
