@@ -3,6 +3,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <StackPane fx:id="mainApplicationLayout" prefHeight="380.0" prefWidth="492.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="editor.MainController">
 
     <BorderPane fx:id="mainWorkspace">
@@ -48,6 +50,7 @@
     </BorderPane>
 
     <VBox fx:id="loadingScreen" styleClass="loading-screen">
+        <VBox styleClass="loading-img"></VBox>
         <Label styleClass="loading-text" text="LOADING WORKSPACE..." />
     </VBox>
 

@@ -36,8 +36,6 @@
 
     <build>
         <plugins>
-
-            <!-- Запуск через: mvn javafx:run -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -47,7 +45,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Сборка fat-jar со всеми зависимостями -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
