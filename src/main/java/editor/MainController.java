@@ -46,6 +46,12 @@ public class MainController {
     private Label fullPatternSymmetryBtn;
 
     @FXML
+    private Label gridMinusBtn;
+
+    @FXML
+    private Label gridPlusBtn;
+
+    @FXML
     private StackPane colorCircle1;
 
     @FXML
@@ -87,6 +93,9 @@ public class MainController {
         setupSymmetryButtonAnimations(horizontalSymmetryBtn);
         setupSymmetryButtonAnimations(verticalSymmetryBtn);
         setupSymmetryButtonAnimations(fullPatternSymmetryBtn);
+
+        setupSymmetryButtonAnimations(gridMinusBtn);
+        setupSymmetryButtonAnimations(gridPlusBtn);
 
         setupColorCircleAnimations(colorCircle1, Color.web("#D97757"));
         setupColorCircleAnimations(colorCircle2, Color.web("#F4AAA9"));
