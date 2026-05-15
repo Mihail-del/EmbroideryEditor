@@ -23,9 +23,9 @@
             <VBox spacing="30" styleClass="left-sidebar">
                 <VBox styleClass="symmetry-controls" spacing="10">
                     <Label styleClass="section-title" text="Symmetry Controls" />
-                    <Label styleClass="symmetry-button" text="Horizontal" />
-                    <Label styleClass="symmetry-button" text="Vertical" />
-                    <Label styleClass="symmetry-button" text="Full Pattern" />
+                    <Label fx:id="horizontalSymmetryBtn" styleClass="symmetry-button" text="Horizontal" />
+                    <Label fx:id="verticalSymmetryBtn" styleClass="symmetry-button" text="Vertical" />
+                    <Label fx:id="fullPatternSymmetryBtn" styleClass="symmetry-button" text="Full Pattern" />
                 </VBox>
                 <Label styleClass="section-title" text="Active Thread" />
                 <Label styleClass="section-title" text="Grid Size" />

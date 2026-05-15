@@ -97,10 +97,6 @@
     -fx-alignment: center;
 }
 
-.symmetry-button:hover {
-    -fx-background-color: -fx-bg-primary;
-}
-
 .main-canvas-view {
     -fx-max-width: 900px;
     -fx-max-height: 630px;
