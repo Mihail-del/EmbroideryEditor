@@ -30,7 +30,21 @@
                     <Label fx:id="verticalSymmetryBtn" styleClass="symmetry-button" text="Vertical" />
                     <Label fx:id="fullPatternSymmetryBtn" styleClass="symmetry-button" text="Full Pattern" />
                 </VBox>
-                <Label styleClass="section-title" text="Active Thread" />
+
+                <VBox styleClass="active-thread" spacing="12">
+                    <Label styleClass="section-title" text="Active Thread" />
+                    <HBox styleClass="thread-colors" spacing="10">
+                        <StackPane styleClass="color-circle" style="-fx-background-color: #D97757;" />
+                        <StackPane styleClass="color-circle" style="-fx-background-color: #F4AAA9;" />
+                        <StackPane styleClass="color-circle, color-empty">
+                            <Label text="+" styleClass="color-empty-text" />
+                        </StackPane>
+                        <StackPane styleClass="color-circle, color-empty">
+                            <Label text="+" styleClass="color-empty-text" />
+                        </StackPane>
+                    </HBox>
+                </VBox>
+
                 <Label styleClass="section-title" text="Grid Size" />
                 <Label text="-  (64 x 64)  +" />
             </VBox>
