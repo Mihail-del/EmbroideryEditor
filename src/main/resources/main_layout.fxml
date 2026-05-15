@@ -12,10 +12,10 @@
         <top>
             <HBox spacing="20" styleClass="top-nav-bar">
                 <Label styleClass="app-title" text="Vyshyvanka Editor" />
-                <Label styleClass="nav-link, active-nav" text="Create" />
-                <Label styleClass="nav-link" text="Save" />
-                <Label styleClass="nav-link" text="Open" />
-                <Label styleClass="nav-link" text="Info" />
+                <Label fx:id="createNavLabel" styleClass="nav-link, active-nav" text="Create" />
+                <Label fx:id="saveNavLabel" styleClass="nav-link" text="Save" />
+                <Label fx:id="openNavLabel" styleClass="nav-link" text="Open" />
+                <Label fx:id="infoNavLabel" styleClass="nav-link" text="Info" />
             </HBox>
         </top>
 

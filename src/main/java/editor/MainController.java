@@ -1,6 +1,5 @@
 package editor;
 
-import javafx.animation.Animation;
 import javafx.animation.Transition;
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
@@ -19,6 +18,18 @@ public class MainController {
     private VBox loadingScreen;
 
     @FXML
+    private Label createNavLabel;
+
+    @FXML
+    private Label saveNavLabel;
+
+    @FXML
+    private Label openNavLabel;
+
+    @FXML
+    private Label infoNavLabel;
+
+    @FXML
     private Label horizontalSymmetryBtn;
 
     @FXML
@@ -27,15 +38,90 @@ public class MainController {
     @FXML
     private Label fullPatternSymmetryBtn;
 
+    private static final Color NAV_IDLE_TEXT = Color.web("#F9F9F7");
+    private static final Color NAV_ACTIVE_TEXT = Color.web("#D97757");
+    private static final Color NAV_BORDER_ACTIVE = Color.web("#D97757");
+    private static final Color NAV_BORDER_TRANSPARENT = Color.web("#D97757", 0.0);
+
+    private static final String NAV_STATE_KEY = "navState";
+
+    private enum NavState {
+        IDLE,
+        ACTIVE
+    }
+
     private final Color IDLE_COLOR = Color.web("#252524"); // -fx-bg-secondary
     private final Color HOVER_COLOR = Color.web("#1f1f1e"); // -fx-bg-primary
 
     @FXML
     public void initialize() {
         simulateLoading();
+
+        setupNavHover(createNavLabel, true);
+        setupNavHover(saveNavLabel, false);
+        setupNavHover(openNavLabel, false);
+        setupNavHover(infoNavLabel, false);
+
         setupSymmetryButtonAnimations(horizontalSymmetryBtn);
         setupSymmetryButtonAnimations(verticalSymmetryBtn);
         setupSymmetryButtonAnimations(fullPatternSymmetryBtn);
+    }
+
+    private void setupNavHover(Label label, boolean isActive) {
+        label.getProperties().put(NAV_STATE_KEY, isActive ? NavState.ACTIVE : NavState.IDLE);
+        setNavStyle(label, isActive ? NAV_ACTIVE_TEXT : NAV_IDLE_TEXT,
+                isActive ? NAV_BORDER_ACTIVE : NAV_BORDER_TRANSPARENT,
+                isActive);
+
+        label.setOnMouseEntered(e -> animateNavTo(label, NavState.ACTIVE));
+        label.setOnMouseExited(e -> {
+            NavState targetState = (label == createNavLabel) ? NavState.ACTIVE : NavState.IDLE;
+            animateNavTo(label, targetState);
+        });
+    }
+
+    private void animateNavTo(Label label, NavState targetState) {
+        NavState currentState = (NavState) label.getProperties().getOrDefault(NAV_STATE_KEY, NavState.IDLE);
+        if (currentState == targetState) {
+            return;
+        }
+
+        Color fromText = currentState == NavState.ACTIVE ? NAV_ACTIVE_TEXT : NAV_IDLE_TEXT;
+        Color toText = targetState == NavState.ACTIVE ? NAV_ACTIVE_TEXT : NAV_IDLE_TEXT;
+        Color fromBorder = currentState == NavState.ACTIVE ? NAV_BORDER_ACTIVE : NAV_BORDER_TRANSPARENT;
+        Color toBorder = targetState == NavState.ACTIVE ? NAV_BORDER_ACTIVE : NAV_BORDER_TRANSPARENT;
+
+        Transition transition = new Transition() {
+            {
+                setCycleDuration(Duration.millis(300));
+            }
+
+            @Override
+            protected void interpolate(double frac) {
+                Color text = fromText.interpolate(toText, frac);
+                Color border = fromBorder.interpolate(toBorder, frac);
+                setNavStyle(label, text, border, targetState == NavState.ACTIVE);
+            }
+        };
+
+        label.getProperties().put(NAV_STATE_KEY, targetState);
+        transition.play();
+    }
+
+    private void setNavStyle(Label label, Color text, Color border, boolean isActive) {
+        String borderWidth = isActive ? "0 0 2 0" : "0";
+        String style = "-fx-text-fill: " + toRgba(text) + ";" +
+                "-fx-border-color: " + toRgba(border) + ";" +
+                "-fx-border-width: " + borderWidth + ";";
+        label.setStyle(style);
+    }
+
+    private String toRgba(Color color) {
+        return String.format("rgba(%d, %d, %d, %.3f)",
+                (int) Math.round(color.getRed() * 255),
+                (int) Math.round(color.getGreen() * 255),
+                (int) Math.round(color.getBlue() * 255),
+                color.getOpacity());
     }
 
     private void setupSymmetryButtonAnimations(Label label) {
@@ -48,6 +134,7 @@ public class MainController {
             {
                 setCycleDuration(Duration.millis(300));
             }
+
             @Override
             protected void interpolate(double frac) {
                 Color interpolated = from.interpolate(to, frac);
