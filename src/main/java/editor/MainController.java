@@ -38,12 +38,6 @@ public class MainController {
     private Label infoNavLabel;
 
     @FXML
-    private Label horizontalSymmetryBtn;
-
-    @FXML
-    private Label verticalSymmetryBtn;
-
-    @FXML
     private HBox horizontalSymmetryBox;
 
     @FXML
@@ -245,7 +239,7 @@ public class MainController {
             timeline.play();
         }
 
-        PauseTransition delay = new PauseTransition(Duration.seconds(1));
+        PauseTransition delay = new PauseTransition(Duration.seconds(5));
         delay.setOnFinished(event -> {
             mainApplicationLayout.getChildren().remove(loadingScreen);
         });
