@@ -2,8 +2,12 @@ package editor;
 
 import javafx.animation.Transition;
 import javafx.animation.PauseTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -16,6 +20,9 @@ public class MainController {
 
     @FXML
     private VBox loadingScreen;
+
+    @FXML
+    private ProgressBar loadingBar;
 
     private Label activeNavLabel;
 
@@ -156,7 +163,15 @@ public class MainController {
     }
 
     private void simulateLoading() {
-        PauseTransition delay = new PauseTransition(Duration.seconds(0));
+        if (loadingBar != null) {
+            Timeline timeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(loadingBar.progressProperty(), 0.0)),
+                new KeyFrame(Duration.seconds(5), new KeyValue(loadingBar.progressProperty(), 1.0))
+            );
+            timeline.play();
+        }
+
+        PauseTransition delay = new PauseTransition(Duration.seconds(5));
         delay.setOnFinished(event -> {
             mainApplicationLayout.getChildren().remove(loadingScreen);
         });

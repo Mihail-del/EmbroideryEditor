@@ -53,9 +53,11 @@
 
     </BorderPane>
 
-    <VBox fx:id="loadingScreen" styleClass="loading-screen">
+    <VBox fx:id="loadingScreen" styleClass="loading-screen" spacing="20">
         <VBox styleClass="loading-img"></VBox>
+        <Label styleClass="author-loading-text" text="Created by Pulov Mykhailo" />
         <Label styleClass="loading-text" text="LOADING WORKSPACE..." />
+        <ProgressBar fx:id="loadingBar" progress="0.0" prefWidth="400.0" styleClass="loading-bar"/>
     </VBox>
 
 </StackPane>
