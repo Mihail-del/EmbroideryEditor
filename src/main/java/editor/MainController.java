@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.effect.DropShadow;
 import javafx.util.Duration;
@@ -43,7 +44,10 @@ public class MainController {
     private Label verticalSymmetryBtn;
 
     @FXML
-    private Label fullPatternSymmetryBtn;
+    private HBox horizontalSymmetryBox;
+
+    @FXML
+    private HBox verticalSymmetryBox;
 
     @FXML
     private Label gridMinusBtn;
@@ -90,9 +94,8 @@ public class MainController {
         setupNavHover(openNavLabel, false);
         setupNavHover(infoNavLabel, false);
 
-        setupSymmetryButtonAnimations(horizontalSymmetryBtn);
-        setupSymmetryButtonAnimations(verticalSymmetryBtn);
-        setupSymmetryButtonAnimations(fullPatternSymmetryBtn);
+        setupSymmetryButtonAnimations(horizontalSymmetryBox);
+        setupSymmetryButtonAnimations(verticalSymmetryBox);
 
         setupSymmetryButtonAnimations(gridMinusBtn);
         setupSymmetryButtonAnimations(gridPlusBtn);
@@ -160,9 +163,9 @@ public class MainController {
                 color.getOpacity());
     }
 
-    private void setupSymmetryButtonAnimations(Label label) {
-        label.setOnMouseEntered(e -> animateBackground(label, IDLE_COLOR, HOVER_COLOR, true));
-        label.setOnMouseExited(e -> animateBackground(label, HOVER_COLOR, IDLE_COLOR, false));
+    private void setupSymmetryButtonAnimations(javafx.scene.Node node) {
+        node.setOnMouseEntered(e -> animateBackground(node, IDLE_COLOR, HOVER_COLOR, true));
+        node.setOnMouseExited(e -> animateBackground(node, HOVER_COLOR, IDLE_COLOR, false));
     }
 
     private void setupColorCircleAnimations(StackPane pane, Color baseColor) {
@@ -209,7 +212,7 @@ public class MainController {
         transition.play();
     }
 
-    private void animateBackground(Label label, Color from, Color to, boolean isHover) {
+    private void animateBackground(javafx.scene.Node node, Color from, Color to, boolean isHover) {
         Transition transition = new Transition() {
             {
                 setCycleDuration(Duration.millis(300));
@@ -227,7 +230,7 @@ public class MainController {
                 if (isHover) {
                     style += "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 2);";
                 }
-                label.setStyle(style);
+                node.setStyle(style);
             }
         };
         transition.play();

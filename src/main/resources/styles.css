@@ -151,14 +151,18 @@
 }
 
 .symmetry-button {
-    -fx-text-fill: -fx-text-primary;
-    -fx-font-size: 13px;
     -fx-cursor: hand;
     -fx-background-color: -fx-bg-secondary;
     -fx-padding: 10px 20px;
     -fx-background-radius: 8px;
     -fx-min-width: 160px;
-    -fx-alignment: center;
+    -fx-alignment: center-right;
+}
+
+.symmetry-text {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 13px;
+    -fx-alignment: center-right;
 }
 
 .grid-size-btn {

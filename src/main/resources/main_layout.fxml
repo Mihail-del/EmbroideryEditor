@@ -26,9 +26,20 @@
             <VBox spacing="30" styleClass="left-sidebar">
                 <VBox styleClass="symmetry-controls" spacing="10">
                     <Label styleClass="section-title" text="Symmetry Controls" />
-                    <Label fx:id="horizontalSymmetryBtn" styleClass="symmetry-button" text="Horizontal" />
-                    <Label fx:id="verticalSymmetryBtn" styleClass="symmetry-button" text="Vertical" />
-                    <Label fx:id="fullPatternSymmetryBtn" styleClass="symmetry-button" text="Full Pattern" />
+                    <HBox fx:id="horizontalSymmetryBox" styleClass="symmetry-button" spacing="10" alignment="CENTER_LEFT">
+                        <Label fx:id="horizontalSymmetryBtn" styleClass="symmetry-text" text="Horizontal" />
+                        <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
+                            <image><Image url="@/icons/horizont.png"/></image>
+                        </ImageView>
+                        <Region HBox.hgrow="ALWAYS" />
+                    </HBox>
+                    <HBox fx:id="verticalSymmetryBox" styleClass="symmetry-button" spacing="10" alignment="CENTER_LEFT">
+                        <Label fx:id="verticalSymmetryBtn" styleClass="symmetry-text" text="Vertical" />
+                        <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
+                            <image><Image url="@/icons/vertical.png"/></image>
+                        </ImageView>
+                        <Region HBox.hgrow="ALWAYS" />
+                    </HBox>
                 </VBox>
 
                 <VBox styleClass="active-thread" spacing="12">
@@ -51,9 +62,21 @@
                 <VBox styleClass="symmetry-controls" spacing="10">
                     <Label styleClass="section-title" text="Grid Size" />
                     <HBox alignment="CENTER" spacing="15">
-                        <Label fx:id="gridMinusBtn" styleClass="grid-size-btn" text="-" />
+                        <Label fx:id="gridMinusBtn" styleClass="grid-size-btn">
+                            <graphic>
+                                <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
+                                    <image><Image url="@/icons/minus.png"/></image>
+                                </ImageView>
+                            </graphic>
+                        </Label>
                         <Label styleClass="grid-size-text" text="64 x 64" />
-                        <Label fx:id="gridPlusBtn" styleClass="grid-size-btn" text="+" />
+                        <Label fx:id="gridPlusBtn" styleClass="grid-size-btn">
+                            <graphic>
+                                <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
+                                    <image><Image url="@/icons/plus.png"/></image>
+                                </ImageView>
+                            </graphic>
+                        </Label>
                     </HBox>
                 </VBox>
             </VBox>
