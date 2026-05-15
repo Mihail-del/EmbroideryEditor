@@ -21,11 +21,12 @@
 
         <left>
             <VBox spacing="30" styleClass="left-sidebar">
-                <Label styleClass="section-title" text="Symmetry Controls" />
-                <Label text="Horizontal" />
-                <Label text="Vertical" />
-                <Label text="Full Pattern" />
-
+                <VBox styleClass="symmetry-controls" spacing="10">
+                    <Label styleClass="section-title" text="Symmetry Controls" />
+                    <Label styleClass="symmetry-button" text="Horizontal" />
+                    <Label styleClass="symmetry-button" text="Vertical" />
+                    <Label styleClass="symmetry-button" text="Full Pattern" />
+                </VBox>
                 <Label styleClass="section-title" text="Active Thread" />
                 <Label styleClass="section-title" text="Grid Size" />
                 <Label text="-  (64 x 64)  +" />
