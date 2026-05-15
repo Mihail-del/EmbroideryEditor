@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/src/main/java/editor/EmbroideryEditor.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/main/java/editor/EmbroideryEditor.java" />
+              <option name="originalContent" value="package editor;&#10;&#10;import javafx.application.Application;&#10;import javafx.fxml.FXMLLoader;&#10;import javafx.scene.Parent;&#10;import javafx.scene.Scene;&#10;import javafx.stage.Stage;&#10;&#10;import java.util.Objects;&#10;&#10;public class EmbroideryEditor extends Application {&#10;&#10;    @Override&#10;    public void start(Stage primaryStage) throws Exception {&#10;        // load FXML&#10;        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource(&quot;/main_layout.fxml&quot;)));&#10;&#10;        Scene scene = new Scene(root, 1200, 800);&#10;&#10;        // load CSS&#10;        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource(&quot;/styles.css&quot;)).toExternalForm());&#10;&#10;        primaryStage.setTitle(&quot;Vyshyvanka Editor&quot;);&#10;        primaryStage.setScene(scene);&#10;        primaryStage.setMinWidth(900);&#10;        primaryStage.setMinHeight(600);&#10;        primaryStage.setAlwaysOnTop(true);&#10;        primaryStage.show();&#10;    }&#10;&#10;    public static void main(String[] args) {&#10;        launch(args);&#10;    }&#10;}" />
+              <option name="updatedContent" value="package editor;&#10;&#10;import javafx.application.Application;&#10;import javafx.fxml.FXMLLoader;&#10;import javafx.scene.Scene;&#10;import javafx.scene.text.Font;&#10;import javafx.stage.Stage;&#10;&#10;import java.io.IOException;&#10;import java.util.Objects;&#10;&#10;public class EmbroideryEditor extends Application {&#10;    @Override&#10;    public void start(Stage primaryStage) throws Exception {&#10;        // Load custom font explicitly&#10;        Font.loadFont(getClass().getResourceAsStream(&quot;/fonts/Serifa.ttf&quot;), 14);&#10;&#10;        // load FXML&#10;        FXMLLoader fxmlLoader = new FXMLLoader(EmbroideryEditor.class.getResource(&quot;/main_layout.fxml&quot;));&#10;        Scene scene = new Scene(fxmlLoader.load(), 1200, 800);&#10;&#10;        // load CSS&#10;        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource(&quot;/styles.css&quot;)).toExternalForm());&#10;&#10;        primaryStage.setTitle(&quot;Vyshyvanka Editor&quot;);&#10;        primaryStage.setScene(scene);&#10;        primaryStage.setMinWidth(900);&#10;        primaryStage.setMinHeight(600);&#10;        primaryStage.setAlwaysOnTop(true);&#10;        primaryStage.show();&#10;    }&#10;&#10;    public static void main(String[] args) {&#10;        launch(args);&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

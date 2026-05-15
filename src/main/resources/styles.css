@@ -1,3 +1,8 @@
+@font-face {
+    font-family: "Serifa";
+    src: url("/fonts/Serifa.ttf");
+}
+
 .root {
     /* Color Palette - Primary Colors */
     -fx-accent-orange: #D97757;
@@ -22,7 +27,7 @@
     -fx-shadow-orange: rgba(217, 119, 87, 0.3);
 
     /* Font Family */
-    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-family: "Serifa", serif;
     -fx-background-color: -fx-bg-primary;
     -fx-text-fill: -fx-text-primary;
 }
