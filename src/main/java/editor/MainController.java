@@ -17,8 +17,7 @@ public class MainController {
     @FXML
     private VBox loadingScreen;
 
-    @FXML
-    private Label createNavLabel;
+    private Label activeNavLabel;
 
     @FXML
     private Label saveNavLabel;
@@ -57,7 +56,10 @@ public class MainController {
     public void initialize() {
         simulateLoading();
 
-        setupNavHover(createNavLabel, true);
+        activeNavLabel = (Label) mainApplicationLayout.lookup(".active-nav");
+        if (activeNavLabel != null) {
+            setupNavHover(activeNavLabel, true);
+        }
         setupNavHover(saveNavLabel, false);
         setupNavHover(openNavLabel, false);
         setupNavHover(infoNavLabel, false);
@@ -75,7 +77,7 @@ public class MainController {
 
         label.setOnMouseEntered(e -> animateNavTo(label, NavState.ACTIVE));
         label.setOnMouseExited(e -> {
-            NavState targetState = (label == createNavLabel) ? NavState.ACTIVE : NavState.IDLE;
+            NavState targetState = (label == activeNavLabel) ? NavState.ACTIVE : NavState.IDLE;
             animateNavTo(label, targetState);
         });
     }

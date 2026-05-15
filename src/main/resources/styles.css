@@ -39,9 +39,22 @@
 .top-nav-bar {
     -fx-background-color: -fx-bg-secondary;
     -fx-padding: 15px 30px;
-    -fx-alignment: center-left;
+    -fx-alignment: center;
     -fx-border-color: -fx-border-dark;
     -fx-border-width: 0 0 1px 0;
+}
+
+.nav-controls {
+    -fx-background-color: -fx-bg-tertiary;
+    -fx-padding: 8px 20px;
+    -fx-spacing: 20px;
+    -fx-min-height: 40px;
+    -fx-border-color: -fx-border-dark;
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, -fx-shadow-strong, 20, 0.2, 0, 0);
+    -fx-alignment: center;
 }
 
 .app-title {

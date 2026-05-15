@@ -10,12 +10,15 @@
     <BorderPane fx:id="mainWorkspace">
 
         <top>
-            <HBox spacing="20" styleClass="top-nav-bar">
+            <HBox styleClass="top-nav-bar">
                 <Label styleClass="app-title" text="Vyshyvanka Editor" />
-                <Label fx:id="createNavLabel" styleClass="nav-link, active-nav" text="Create" />
-                <Label fx:id="saveNavLabel" styleClass="nav-link" text="Save" />
-                <Label fx:id="openNavLabel" styleClass="nav-link" text="Open" />
-                <Label fx:id="infoNavLabel" styleClass="nav-link" text="Info" />
+                <Region HBox.hgrow="ALWAYS" />
+                <HBox spacing="12" styleClass="nav-controls">
+                    <Label fx:id="saveNavLabel" styleClass="nav-link" text="Save" />
+                    <Label fx:id="openNavLabel" styleClass="nav-link" text="Open" />
+                    <Label fx:id="infoNavLabel" styleClass="nav-link" text="Info" />
+                </HBox>
+                <Region HBox.hgrow="ALWAYS" />
             </HBox>
         </top>
 
