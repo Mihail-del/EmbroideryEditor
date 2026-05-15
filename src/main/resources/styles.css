@@ -1,103 +1,110 @@
 .root {
     /* Color Palette - Primary Colors */
-    /* #D97757 - Primary Orange */
-    /* #F4AAA9 - Primary Pink */
+    -fx-accent-orange: #D97757;
+    -fx-accent-pink: #F4AAA9;
 
     /* Neutral Colors */
-    /* #1f1f1e - Background Dark */
-    /* #252524 - Background Dark Secondary */
-    /* #2C2C2B - Background Dark Tertiary */
-    /* #faf5eb - Background Light */
-    /* #c3c2b7 - Background Light Secondary/Tertiary */
+    -fx-bg-primary: #1f1f1e;
+    -fx-bg-secondary: #252524;
+    -fx-bg-tertiary: #2C2C2B;
+    -fx-bg-light: #faf5eb;
+    -fx-bg-light-alt: #c3c2b7;
 
     /* Text Colors */
-    /* #262624 - Text Dark */
-    /* #97958C - Text Medium */
-    /* #F9F9F7 - Text Light */
-    /* #3e2723 - Text on Light BG */
+    -fx-text-primary: #F9F9F7;
+    -fx-text-muted: #97958C;
+    -fx-text-on-light: #3e2723;
 
-    /* Border Color: #e0e0e0 */
-    /* Accent Orange: #D97757 */
-    /* Accent Pink: #F4AAA9 */
-    /* Shadow: rgba(0, 0, 0, 0.05) */
+    /* Border and Shadow */
+    -fx-border-dark: #1f1f1e;
+    -fx-shadow-strong: rgba(0, 0, 0, 0.3);
 
     /* Font Family */
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    -fx-background-color: #1f1f1e;
+    -fx-background-color: -fx-bg-primary;
+    -fx-text-fill: -fx-text-primary;
+}
+
+.label {
+    -fx-text-fill: -fx-text-primary;
 }
 
 .top-nav-bar {
-    -fx-background-color: #faf5eb;
+    -fx-background-color: -fx-bg-secondary;
     -fx-padding: 15px 30px;
     -fx-alignment: center-left;
-    -fx-border-color: #e0e0e0;
+    -fx-border-color: -fx-border-dark;
     -fx-border-width: 0 0 1px 0;
 }
 
 .app-title {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: #D97757;
+    -fx-text-fill: -fx-accent-orange;
     -fx-padding: 0 40px 0 0;
 }
 
 .nav-link {
     -fx-font-size: 14px;
-    -fx-text-fill: #97958C;
+    -fx-text-fill: -fx-text-primary;
     -fx-cursor: hand;
 }
 
 .active-nav {
     -fx-font-weight: bold;
-    -fx-text-fill: #D97757;
-    -fx-border-color: #D97757;
+    -fx-text-fill: -fx-accent-orange;
+    -fx-border-color: -fx-accent-orange;
     -fx-border-width: 0 0 2px 0;
 }
 
 .left-sidebar {
-    -fx-background-color: #c3c2b7;
+    -fx-background-color: -fx-bg-tertiary;
     -fx-padding: 20px;
     -fx-pref-width: 250px;
-    -fx-border-color: #e0e0e0;
+    -fx-border-color: -fx-border-dark;
     -fx-border-width: 0 1px 0 0;
 }
 
 .section-title {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-text-fill: #262624;
+    -fx-text-fill: -fx-text-primary;
 }
 
 .main-canvas-view {
-    -fx-background-color: #faf5eb;
+    -fx-max-width: 900px;
+    -fx-max-height: 630px;
+    -fx-background-color: -fx-bg-light-alt;
     -fx-margin: 20px;
     -fx-background-radius: 12px;
-    -fx-border-color: #e0e0e0;
+    -fx-border-color: -fx-border-dark;
     -fx-border-radius: 12px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 10, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, -fx-shadow-strong, 10, 0, 0, 2);
+}
+
+.main-canvas-view .label {
+    -fx-text-fill: -fx-text-muted;
 }
 
 .bottom-toolbar {
-    -fx-background-color: #c3c2b7;
+    -fx-background-color: -fx-bg-secondary;
     -fx-padding: 15px;
     -fx-alignment: center;
-    -fx-border-color: #e0e0e0;
+    -fx-border-color: -fx-border-dark;
     -fx-border-width: 1px 0 0 0;
 }
 
 .animate-button {
-    -fx-background-color: #D97757;
-    -fx-text-fill: #3e2723;
+    -fx-background-color: -fx-accent-orange;
+    -fx-text-fill: -fx-text-primary;
     -fx-padding: 8px 20px;
     -fx-background-radius: 20px;
     -fx-font-weight: bold;
     -fx-cursor: hand;
 }
 
-
-
 .loading-screen {
-    -fx-background-color: #1f1f1e;
+    -fx-background-color: -fx-bg-primary;
     -fx-alignment: top-center;
 }
 
@@ -108,13 +115,13 @@
     -fx-min-height: 400px;
     -fx-background-image: url("/images/loading_img.png");
     -fx-background-size: cover;
-    -fx-background-color: #F4AAA9;
+    -fx-background-color: -fx-accent-pink;
     -fx-padding: 100px;
 }
 
 .loading-text {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: #F9F9F7;
+    -fx-text-fill: -fx-text-primary;
     -fx-letter-spacing: 2px;
 }

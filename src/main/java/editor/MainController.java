@@ -20,7 +20,7 @@ public class MainController {
     }
 
     private void simulateLoading() {
-        PauseTransition delay = new PauseTransition(Duration.seconds(10));
+        PauseTransition delay = new PauseTransition(Duration.seconds(1));
         delay.setOnFinished(event -> {
             mainApplicationLayout.getChildren().remove(loadingScreen);
         });
