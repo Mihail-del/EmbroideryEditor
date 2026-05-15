@@ -11,6 +11,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.effect.DropShadow;
 import javafx.util.Duration;
 
 public class MainController {
@@ -44,6 +45,18 @@ public class MainController {
     @FXML
     private Label fullPatternSymmetryBtn;
 
+    @FXML
+    private StackPane colorCircle1;
+
+    @FXML
+    private StackPane colorCircle2;
+
+    @FXML
+    private StackPane colorCircle3;
+
+    @FXML
+    private StackPane colorCircle4;
+
     private static final Color NAV_IDLE_TEXT = Color.web("#F9F9F7");
     private static final Color NAV_ACTIVE_TEXT = Color.web("#D97757");
     private static final Color NAV_BORDER_ACTIVE = Color.web("#D97757");
@@ -74,6 +87,11 @@ public class MainController {
         setupSymmetryButtonAnimations(horizontalSymmetryBtn);
         setupSymmetryButtonAnimations(verticalSymmetryBtn);
         setupSymmetryButtonAnimations(fullPatternSymmetryBtn);
+
+        setupColorCircleAnimations(colorCircle1, Color.web("#D97757"));
+        setupColorCircleAnimations(colorCircle2, Color.web("#F4AAA9"));
+        setupColorCircleAnimations(colorCircle3, Color.TRANSPARENT);
+        setupColorCircleAnimations(colorCircle4, Color.TRANSPARENT);
     }
 
     private void setupNavHover(Label label, boolean isActive) {
@@ -138,6 +156,50 @@ public class MainController {
         label.setOnMouseExited(e -> animateBackground(label, HOVER_COLOR, IDLE_COLOR, false));
     }
 
+    private void setupColorCircleAnimations(StackPane pane, Color baseColor) {
+        if (pane == null) return;
+        boolean isEmpty = baseColor.equals(Color.TRANSPARENT);
+
+        pane.setOnMouseEntered(e -> animateCircleHover(pane, baseColor, isEmpty, true));
+        pane.setOnMouseExited(e -> animateCircleHover(pane, baseColor, isEmpty, false));
+    }
+
+    private void animateCircleHover(StackPane pane, Color baseColor, boolean isEmpty, boolean isHover) {
+        Transition transition = new Transition() {
+            {
+                setCycleDuration(Duration.millis(300));
+            }
+
+            @Override
+            protected void interpolate(double frac) {
+                if (isEmpty) {
+                    // Just animate a white glow for empty slots
+                    double shadowOpacity = isHover ? 0.3 * frac : 0.3 * (1.0 - frac);
+                    if (shadowOpacity > 0.02) {
+                        pane.setEffect(new DropShadow(10, 0, 0, new Color(1, 1, 1, shadowOpacity)));
+                    } else {
+                        pane.setEffect(null);
+                    }
+                } else {
+                    // Animate colored glow for filled slots
+                    double shadowOpacity = isHover ? (0.35 + 0.4 * frac) : (0.35 + 0.4 * (1.0 - frac));
+                    double glowRadius = isHover ? (6 + 8 * frac) : (6 + 8 * (1.0 - frac));
+
+                    Color shadowColor = new Color(
+                        baseColor.getRed(),
+                        baseColor.getGreen(),
+                        baseColor.getBlue(),
+                        shadowOpacity
+                    );
+                    pane.setEffect(new DropShadow(glowRadius, 0, 0, shadowColor));
+
+                    // optional scale logic could go here
+                }
+            }
+        };
+        transition.play();
+    }
+
     private void animateBackground(Label label, Color from, Color to, boolean isHover) {
         Transition transition = new Transition() {
             {
@@ -171,7 +233,7 @@ public class MainController {
             timeline.play();
         }
 
-        PauseTransition delay = new PauseTransition(Duration.seconds(5));
+        PauseTransition delay = new PauseTransition(Duration.seconds(1));
         delay.setOnFinished(event -> {
             mainApplicationLayout.getChildren().remove(loadingScreen);
         });

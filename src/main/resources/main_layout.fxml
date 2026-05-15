@@ -42,6 +42,9 @@
                         <StackPane styleClass="color-circle, color-empty">
                             <Label text="+" styleClass="color-empty-text" />
                         </StackPane>
+                        <StackPane styleClass="color-circle, color-empty">
+                            <Label text="+" styleClass="color-empty-text" />
+                        </StackPane>
                     </HBox>
                 </VBox>
 

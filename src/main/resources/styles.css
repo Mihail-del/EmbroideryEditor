@@ -110,6 +110,11 @@
     -fx-background-radius: 50px;
     -fx-border-radius: 50px;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 6, 0, 0, 2);
+    -fx-cursor: hand;
+}
+
+.color-circle:hover {
+    -fx-effect: dropshadow(gaussian, -fx-shadow-light, 10, 0.1, 0, 0);
 }
 
 .color-empty {
