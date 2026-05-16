@@ -20,6 +20,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 
 public class MainController {
 
@@ -138,6 +139,9 @@ public class MainController {
         }
 
         if (createGridBtn != null && projectNameField != null) {
+            projectNameField.setTextFormatter(new TextFormatter<String>(change ->
+                    change.getControlNewText().length() <= 12 ? change : null
+            ));
             createGridBtn.disableProperty().bind(
                     Bindings.createBooleanBinding(
                             () -> projectNameField.getText() == null || projectNameField.getText().trim().isEmpty(),

@@ -198,26 +198,15 @@
     -fx-text-fill: -fx-text-on-light;
 }
 
-.create-grid-btn {
-    -fx-background-color: rgba(69, 69, 67, 0.6);
-    -fx-text-fill: -fx-text-primary;
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-    -fx-padding: 12px 28px;
-    -fx-background-radius: 16px;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 18, 0.25, 0, 4);
-}
-
-.create-grid-btn:hover {
-    -fx-background-color: rgba(69, 69, 66, 0.75);
-}
-
 .create-menu {
     -fx-background-color: rgba(31, 31, 30, 0.5);
     -fx-padding: 16px 20px;
     -fx-background-radius: 16px;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 22, 0.25, 0, 6);
+    -fx-pref-width: 260px;
+    -fx-max-width: 260px;
+    -fx-max-height: 40px;
+    -fx-alignment: center;
 }
 
 .create-name-field {
@@ -229,6 +218,7 @@
     -fx-border-color: rgba(249, 249, 247, 0.2);
     -fx-padding: 8px 12px;
     -fx-pref-width: 220px;
+    -fx-max-width: 220px;
 }
 
 .create-name-field:focused {
@@ -237,8 +227,24 @@
 }
 
 .input-error {
-    -fx-border-color: -fx-accent-orange;
+    -fx-border-color: -fx-accent-pink;
     -fx-border-width: 1px;
+}
+
+.create-grid-btn {
+    -fx-background-color: rgba(69, 69, 67, 0.6);
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 12px 28px;
+    -fx-background-radius: 16px;
+    -fx-cursor: hand;
+    -fx-border-color: -fx-bg-tertiary;
+    -fx-border-radius: 16px;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.45), 18, 0.25, 0, 4);
+    -fx-pref-width: 220px;
+    -fx-max-width: 220px;
 }
 
 .bottom-toolbar {
