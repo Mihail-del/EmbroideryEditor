@@ -19,6 +19,7 @@ import javafx.beans.binding.Bindings;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 
 public class MainController {
 
@@ -68,6 +69,12 @@ public class MainController {
 
     @FXML
     private Button createGridBtn;
+
+    @FXML
+    private VBox createMenu;
+
+    @FXML
+    private TextField projectNameField;
 
     @FXML
     private StackPane colorCircle1;
@@ -130,10 +137,29 @@ public class MainController {
             drawGrid();
         }
 
-        if (createGridBtn != null) {
+        if (createGridBtn != null && projectNameField != null) {
+            createGridBtn.disableProperty().bind(
+                    Bindings.createBooleanBinding(
+                            () -> projectNameField.getText() == null || projectNameField.getText().trim().isEmpty(),
+                            projectNameField.textProperty()
+                    )
+            );
+            projectNameField.textProperty().addListener((obs, oldVal, newVal) -> {
+                projectNameField.getStyleClass().remove("input-error");
+            });
             createGridBtn.setOnAction(e -> {
-                createGridBtn.setManaged(false);
-                createGridBtn.setVisible(false);
+                String name = projectNameField.getText() == null ? "" : projectNameField.getText().trim();
+                if (name.isEmpty()) {
+                    if (!projectNameField.getStyleClass().contains("input-error")) {
+                        projectNameField.getStyleClass().add("input-error");
+                    }
+                    projectNameField.requestFocus();
+                    return;
+                }
+                if (createMenu != null) {
+                    createMenu.setManaged(false);
+                    createMenu.setVisible(false);
+                }
             });
         }
 

@@ -92,7 +92,10 @@
                 <StackPane fx:id="canvasContainer">
                     <StackPane fx:id="mainCanvasView" styleClass="main-canvas-view">
                         <Canvas fx:id="gridCanvas" />
-                        <Button fx:id="createGridBtn" text="Create" styleClass="create-grid-btn" />
+                        <VBox fx:id="createMenu" styleClass="create-menu" spacing="10" alignment="CENTER">
+                            <TextField fx:id="projectNameField" promptText="Project name" styleClass="create-name-field" />
+                            <Button fx:id="createGridBtn" text="Create" styleClass="create-grid-btn" />
+                        </VBox>
                     </StackPane>
                 </StackPane>
             </center>
