@@ -239,7 +239,7 @@ public class MainController {
             timeline.play();
         }
 
-        PauseTransition delay = new PauseTransition(Duration.seconds(5));
+        PauseTransition delay = new PauseTransition(Duration.seconds(0));
         delay.setOnFinished(event -> {
             mainApplicationLayout.getChildren().remove(loadingScreen);
         });
