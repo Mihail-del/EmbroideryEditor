@@ -63,7 +63,7 @@
                             </ImageView>
                         </graphic>
                     </Label>
-                    <Label styleClass="grid-size-text" text="64 x 64" />
+                    <Label fx:id="gridSizeLabel" styleClass="grid-size-text" text="64 x 64" />
                     <Label fx:id="gridPlusBtn" styleClass="grid-size-btn">
                         <graphic>
                             <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">

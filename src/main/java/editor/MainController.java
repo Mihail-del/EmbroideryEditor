@@ -63,6 +63,9 @@ public class MainController {
     private Label gridPlusBtn;
 
     @FXML
+    private Label gridSizeLabel;
+
+    @FXML
     private StackPane colorCircle1;
 
     @FXML
@@ -89,10 +92,14 @@ public class MainController {
     private final Color IDLE_COLOR = Color.web("#252524"); // -fx-bg-secondary
     private final Color HOVER_COLOR = Color.web("#1f1f1e"); // -fx-bg-primary
 
-    private static final int GRID_SIZE = 64;
     private static final double DOT_RADIUS = 1.5;
     private static final double GRID_PADDING = 12.0;
     private static final Color GRID_DOT_COLOR = Color.web("#97958C", 0.6);
+
+    private static final int GRID_MIN = 8;
+    private static final int GRID_MAX = 96;
+    private static final int GRID_STEP = 8;
+    private int gridSize = 64;
 
     @FXML
     public void initialize() {
@@ -117,6 +124,17 @@ public class MainController {
             gridCanvas.widthProperty().addListener((obs, oldVal, newVal) -> drawGrid());
             gridCanvas.heightProperty().addListener((obs, oldVal, newVal) -> drawGrid());
             drawGrid();
+        }
+
+        if (gridSizeLabel != null) {
+            gridSizeLabel.setText(gridSize + " x " + gridSize);
+        }
+
+        if (gridMinusBtn != null) {
+            gridMinusBtn.setOnMouseClicked(e -> updateGridSize(-GRID_STEP));
+        }
+        if (gridPlusBtn != null) {
+            gridPlusBtn.setOnMouseClicked(e -> updateGridSize(GRID_STEP));
         }
 
         activeNavLabel = (Label) mainApplicationLayout.lookup(".active-nav");
@@ -282,6 +300,18 @@ public class MainController {
         delay.play();
     }
 
+    private void updateGridSize(int delta) {
+        int next = Math.max(GRID_MIN, Math.min(GRID_MAX, gridSize + delta));
+        if (next == gridSize) {
+            return;
+        }
+        gridSize = next;
+        if (gridSizeLabel != null) {
+            gridSizeLabel.setText(gridSize + " x " + gridSize);
+        }
+        drawGrid();
+    }
+
     private void drawGrid() {
         if (gridCanvas == null) {
             return;
@@ -302,12 +332,12 @@ public class MainController {
         gc.clearRect(0, 0, width, height);
         gc.setFill(GRID_DOT_COLOR);
 
-        double cellSize = Math.min(innerWidth, innerHeight) / GRID_SIZE;
+        double cellSize = Math.min(innerWidth, innerHeight) / gridSize;
         double dotSize = DOT_RADIUS * 2;
 
-        for (int y = 0; y <= GRID_SIZE; y++) {
+        for (int y = 0; y <= gridSize; y++) {
             double py = GRID_PADDING + (y * cellSize);
-            for (int x = 0; x <= GRID_SIZE; x++) {
+            for (int x = 0; x <= gridSize; x++) {
                 double px = GRID_PADDING + (x * cellSize);
                 gc.fillOval(px - DOT_RADIUS, py - DOT_RADIUS, dotSize, dotSize);
             }
