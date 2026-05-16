@@ -139,9 +139,13 @@ public class MainController {
         }
 
         if (createGridBtn != null && projectNameField != null) {
-            projectNameField.setTextFormatter(new TextFormatter<String>(change ->
-                    change.getControlNewText().length() <= 12 ? change : null
-            ));
+            projectNameField.setTextFormatter(new TextFormatter<String>(change -> {
+                String next = change.getControlNewText();
+                if (next.length() > 15) {
+                    return null;
+                }
+                return next.matches("[A-Za-z0-9_-]*") ? change : null;
+            }));
             createGridBtn.disableProperty().bind(
                     Bindings.createBooleanBinding(
                             () -> projectNameField.getText() == null || projectNameField.getText().trim().isEmpty(),
