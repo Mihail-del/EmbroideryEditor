@@ -215,6 +215,9 @@
     -fx-cursor: hand;
 }
 
+
+/* ------------ LOADING SCREEN ------------ */
+
 .loading-screen {
     -fx-background-color: -fx-bg-primary;
     -fx-alignment: center;
@@ -255,7 +258,16 @@
     -fx-background-color: -fx-bg-secondary;
     -fx-background-radius: 10px;
     -fx-border-radius: 10px;
-    -fx-padding: 2px;
+    -fx-padding: 1px;
+}
+
+.loading-bar .track {
+    -fx-background-color: -fx-bg-secondary;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 10px, 9px;
+    -fx-border-color: -fx-bg-tertiary;
+    -fx-border-radius: 10px;
+    -fx-border-width: 1px;
 }
 
 .loading-bar .bar {
