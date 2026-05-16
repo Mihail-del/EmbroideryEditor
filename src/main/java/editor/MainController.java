@@ -11,9 +11,11 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.effect.DropShadow;
 import javafx.util.Duration;
+import javafx.beans.binding.Bindings;
 
 public class MainController {
 
@@ -36,6 +38,12 @@ public class MainController {
 
     @FXML
     private Label infoNavLabel;
+
+    @FXML
+    private StackPane canvasContainer;
+
+    @FXML
+    private StackPane mainCanvasView;
 
     @FXML
     private HBox horizontalSymmetryBox;
@@ -80,10 +88,22 @@ public class MainController {
     public void initialize() {
         simulateLoading();
 
-        activeNavLabel = (Label) mainApplicationLayout.lookup(".active-nav");
-        if (activeNavLabel != null) {
-            setupNavHover(activeNavLabel, true);
+        if (mainCanvasView != null && canvasContainer != null) {
+            var squareSize = Bindings.min(
+                    canvasContainer.widthProperty().subtract(40),
+                    canvasContainer.heightProperty().subtract(40)
+            );
+            mainCanvasView.minWidthProperty().bind(squareSize);
+            mainCanvasView.minHeightProperty().bind(squareSize);
+            mainCanvasView.prefWidthProperty().bind(squareSize);
+            mainCanvasView.prefHeightProperty().bind(squareSize);
+            mainCanvasView.maxWidthProperty().bind(squareSize);
+            mainCanvasView.maxHeightProperty().bind(squareSize);
         }
+
+        activeNavLabel = (Label) mainApplicationLayout.lookup(".active-nav");
+        if (activeNavLabel != null)
+            setupNavHover(activeNavLabel, true);
         setupNavHover(saveNavLabel, false);
         setupNavHover(openNavLabel, false);
         setupNavHover(infoNavLabel, false);
@@ -198,8 +218,6 @@ public class MainController {
                         shadowOpacity
                     );
                     pane.setEffect(new DropShadow(glowRadius, 0, 0, shadowColor));
-
-                    // optional scale logic could go here
                 }
             }
         };
