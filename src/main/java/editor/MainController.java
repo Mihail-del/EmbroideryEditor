@@ -16,6 +16,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.effect.DropShadow;
 import javafx.util.Duration;
 import javafx.beans.binding.Bindings;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 
 public class MainController {
 
@@ -44,6 +46,9 @@ public class MainController {
 
     @FXML
     private StackPane mainCanvasView;
+
+    @FXML
+    private Canvas gridCanvas;
 
     @FXML
     private HBox horizontalSymmetryBox;
@@ -84,6 +89,11 @@ public class MainController {
     private final Color IDLE_COLOR = Color.web("#252524"); // -fx-bg-secondary
     private final Color HOVER_COLOR = Color.web("#1f1f1e"); // -fx-bg-primary
 
+    private static final int GRID_SIZE = 64;
+    private static final double DOT_RADIUS = 1.5;
+    private static final double GRID_PADDING = 12.0;
+    private static final Color GRID_DOT_COLOR = Color.web("#97958C", 0.6);
+
     @FXML
     public void initialize() {
         simulateLoading();
@@ -99,6 +109,14 @@ public class MainController {
             mainCanvasView.prefHeightProperty().bind(squareSize);
             mainCanvasView.maxWidthProperty().bind(squareSize);
             mainCanvasView.maxHeightProperty().bind(squareSize);
+        }
+
+        if (gridCanvas != null && mainCanvasView != null) {
+            gridCanvas.widthProperty().bind(mainCanvasView.widthProperty());
+            gridCanvas.heightProperty().bind(mainCanvasView.heightProperty());
+            gridCanvas.widthProperty().addListener((obs, oldVal, newVal) -> drawGrid());
+            gridCanvas.heightProperty().addListener((obs, oldVal, newVal) -> drawGrid());
+            drawGrid();
         }
 
         activeNavLabel = (Label) mainApplicationLayout.lookup(".active-nav");
@@ -262,5 +280,37 @@ public class MainController {
             mainApplicationLayout.getChildren().remove(loadingScreen);
         });
         delay.play();
+    }
+
+    private void drawGrid() {
+        if (gridCanvas == null) {
+            return;
+        }
+        double width = gridCanvas.getWidth();
+        double height = gridCanvas.getHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+
+        double innerWidth = Math.max(0, width - (GRID_PADDING * 2));
+        double innerHeight = Math.max(0, height - (GRID_PADDING * 2));
+        if (innerWidth <= 0 || innerHeight <= 0) {
+            return;
+        }
+
+        GraphicsContext gc = gridCanvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, width, height);
+        gc.setFill(GRID_DOT_COLOR);
+
+        double cellSize = Math.min(innerWidth, innerHeight) / GRID_SIZE;
+        double dotSize = DOT_RADIUS * 2;
+
+        for (int y = 0; y <= GRID_SIZE; y++) {
+            double py = GRID_PADDING + (y * cellSize);
+            for (int x = 0; x <= GRID_SIZE; x++) {
+                double px = GRID_PADDING + (x * cellSize);
+                gc.fillOval(px - DOT_RADIUS, py - DOT_RADIUS, dotSize, dotSize);
+            }
+        }
     }
 }
