@@ -18,6 +18,7 @@ import javafx.util.Duration;
 import javafx.beans.binding.Bindings;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 
 public class MainController {
 
@@ -64,6 +65,9 @@ public class MainController {
 
     @FXML
     private Label gridSizeLabel;
+
+    @FXML
+    private Button createGridBtn;
 
     @FXML
     private StackPane colorCircle1;
@@ -124,6 +128,13 @@ public class MainController {
             gridCanvas.widthProperty().addListener((obs, oldVal, newVal) -> drawGrid());
             gridCanvas.heightProperty().addListener((obs, oldVal, newVal) -> drawGrid());
             drawGrid();
+        }
+
+        if (createGridBtn != null) {
+            createGridBtn.setOnAction(e -> {
+                createGridBtn.setManaged(false);
+                createGridBtn.setVisible(false);
+            });
         }
 
         if (gridSizeLabel != null) {

@@ -92,7 +92,7 @@
                 <StackPane fx:id="canvasContainer">
                     <StackPane fx:id="mainCanvasView" styleClass="main-canvas-view">
                         <Canvas fx:id="gridCanvas" />
-                        <Label text="Main Canvas (64x64) " />
+                        <Button fx:id="createGridBtn" text="Create" styleClass="create-grid-btn" />
                     </StackPane>
                 </StackPane>
             </center>
