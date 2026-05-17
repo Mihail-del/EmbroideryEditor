@@ -318,9 +318,23 @@ public class MainController {
 
         pane.setOnMouseEntered(e -> animateCircleHover(pane, getCircleColor(pane), isCircleEmpty(pane), true));
         pane.setOnMouseExited(e -> animateCircleHover(pane, getCircleColor(pane), isCircleEmpty(pane), false));
+
         pane.setOnMouseClicked(e -> {
-            setActiveThreadCircle(pane);
-            openThreadColorPicker(pane);
+            if (isCircleEmpty(pane)) {
+                // If it's an empty slot (+), any mouse click makes it active and shows the palette
+                setActiveThreadCircle(pane);
+                openThreadColorPicker(pane);
+            } else {
+                // If it already has a color
+                if (e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                    // Left click: Only make it active
+                    setActiveThreadCircle(pane);
+                } else if (e.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                    // Right click: Make it active AND open palette to replace the color
+                    setActiveThreadCircle(pane);
+                    openThreadColorPicker(pane);
+                }
+            }
         });
     }
 
