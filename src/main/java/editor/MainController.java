@@ -131,6 +131,7 @@ public class MainController {
     private static final String NAV_STATE_KEY = "navState";
 
     private boolean isVerticalSymmetryActive = false;
+    private boolean isHorizontalSymmetryActive = false;
 
     private enum NavState {
         IDLE,
@@ -184,6 +185,13 @@ public class MainController {
         if (verticalSymmetryBox != null) {
             verticalSymmetryBox.setOnMouseClicked(e -> {
                 isVerticalSymmetryActive = !isVerticalSymmetryActive;
+                drawGrid();
+            });
+        }
+
+        if (horizontalSymmetryBox != null) {
+            horizontalSymmetryBox.setOnMouseClicked(e -> {
+                isHorizontalSymmetryActive = !isHorizontalSymmetryActive;
                 drawGrid();
             });
         }
@@ -509,16 +517,23 @@ public class MainController {
             }
         }
 
-        if (isVerticalSymmetryActive) {
-            double gridTotalWidth = gridSize * cellSize;
-            double gridTotalHeight = gridSize * cellSize;
-            double exactMiddleX = GRID_PADDING + (gridTotalWidth / 2.0);
+        double gridTotalWidth = gridSize * cellSize;
+        double gridTotalHeight = gridSize * cellSize;
 
-            gc.setStroke(Color.web("#D97757", 0.8)); // Same as your accent color, slightly transparent
+        if (isVerticalSymmetryActive || isHorizontalSymmetryActive) {
+            gc.setStroke(Color.web("#D97757", 0.8)); // Accent color
             gc.setLineWidth(2.0);
-            gc.setLineDashes(8, 8);
+            gc.setLineDashes(8, 8); // Dashed effect
 
-            gc.strokeLine(exactMiddleX, GRID_PADDING, exactMiddleX, GRID_PADDING + gridTotalHeight);
+            if (isVerticalSymmetryActive) {
+                double exactMiddleX = GRID_PADDING + (gridTotalWidth / 2.0);
+                gc.strokeLine(exactMiddleX, GRID_PADDING, exactMiddleX, GRID_PADDING + gridTotalHeight);
+            }
+
+            if (isHorizontalSymmetryActive) {
+                double exactMiddleY = GRID_PADDING + (gridTotalHeight / 2.0);
+                gc.strokeLine(GRID_PADDING, exactMiddleY, GRID_PADDING + gridTotalWidth, exactMiddleY);
+            }
 
             gc.setLineDashes((double[]) null);
         }
