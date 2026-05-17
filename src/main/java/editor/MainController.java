@@ -291,6 +291,7 @@ public class MainController {
             return;
         }
         threadColorPicker = new ColorPicker();
+        threadColorPicker.getStyleClass().add("thread-color-picker");
         threadColorPicker.setManaged(false);
         threadColorPicker.setVisible(true);
         threadColorPicker.setOpacity(0.0);
