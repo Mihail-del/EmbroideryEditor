@@ -21,6 +21,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.control.ColorPicker;
 
 public class MainController {
 
@@ -88,6 +89,15 @@ public class MainController {
 
     @FXML
     private StackPane colorCircle4;
+
+    @FXML
+    private StackPane colorCircle5;
+
+    private static final String CIRCLE_COLOR_KEY = "circleBaseColor";
+    private static final String CIRCLE_EMPTY_KEY = "circleIsEmpty";
+
+    private StackPane activeColorCircle;
+    private ColorPicker threadColorPicker;
 
     private static final Color NAV_IDLE_TEXT = Color.web("#F9F9F7");
     private static final Color NAV_ACTIVE_TEXT = Color.web("#D97757");
@@ -195,10 +205,13 @@ public class MainController {
         setupSymmetryButtonAnimations(gridMinusBtn);
         setupSymmetryButtonAnimations(gridPlusBtn);
 
+        initThreadColorPicker();
+
         setupColorCircleAnimations(colorCircle1, Color.web("#D97757"));
         setupColorCircleAnimations(colorCircle2, Color.web("#F4AAA9"));
         setupColorCircleAnimations(colorCircle3, Color.TRANSPARENT);
         setupColorCircleAnimations(colorCircle4, Color.TRANSPARENT);
+        setupColorCircleAnimations(colorCircle5, Color.TRANSPARENT);
     }
 
     private void setupNavHover(Label label, boolean isActive) {
@@ -266,9 +279,80 @@ public class MainController {
     private void setupColorCircleAnimations(StackPane pane, Color baseColor) {
         if (pane == null) return;
         boolean isEmpty = baseColor.equals(Color.TRANSPARENT);
+        setCircleState(pane, baseColor, isEmpty);
 
-        pane.setOnMouseEntered(e -> animateCircleHover(pane, baseColor, isEmpty, true));
-        pane.setOnMouseExited(e -> animateCircleHover(pane, baseColor, isEmpty, false));
+        pane.setOnMouseEntered(e -> animateCircleHover(pane, getCircleColor(pane), isCircleEmpty(pane), true));
+        pane.setOnMouseExited(e -> animateCircleHover(pane, getCircleColor(pane), isCircleEmpty(pane), false));
+        pane.setOnMouseClicked(e -> openThreadColorPicker(pane));
+    }
+
+    private void initThreadColorPicker() {
+        if (mainApplicationLayout == null) {
+            return;
+        }
+        threadColorPicker = new ColorPicker();
+        threadColorPicker.setManaged(false);
+        threadColorPicker.setVisible(true);
+        threadColorPicker.setOpacity(0.0);
+        threadColorPicker.setPrefSize(0, 0);
+        mainApplicationLayout.getChildren().add(threadColorPicker);
+        threadColorPicker.setOnAction(e -> {
+            if (activeColorCircle == null) {
+                return;
+            }
+            Color selected = threadColorPicker.getValue();
+            if (selected != null) {
+                applyCircleColor(activeColorCircle, selected);
+            }
+        });
+    }
+
+    private void openThreadColorPicker(StackPane pane) {
+        if (threadColorPicker == null || pane == null) {
+            return;
+        }
+        activeColorCircle = pane;
+        Color current = getCircleColor(pane);
+        if (current == null || current.equals(Color.TRANSPARENT)) {
+            current = Color.WHITE;
+        }
+        threadColorPicker.setValue(current);
+        threadColorPicker.show();
+    }
+
+    private void applyCircleColor(StackPane pane, Color color) {
+        setCircleState(pane, color, false);
+        pane.setStyle("-fx-background-color: " + toRgb(color) + ";");
+        pane.getChildren().removeIf(node -> node instanceof Label && "+".equals(((Label) node).getText()));
+    }
+
+    private void setCircleState(StackPane pane, Color color, boolean isEmpty) {
+        pane.getProperties().put(CIRCLE_COLOR_KEY, color);
+        pane.getProperties().put(CIRCLE_EMPTY_KEY, isEmpty);
+        if (isEmpty) {
+            if (!pane.getStyleClass().contains("color-empty")) {
+                pane.getStyleClass().add("color-empty");
+            }
+        } else {
+            pane.getStyleClass().remove("color-empty");
+        }
+    }
+
+    private Color getCircleColor(StackPane pane) {
+        Object color = pane.getProperties().get(CIRCLE_COLOR_KEY);
+        return color instanceof Color ? (Color) color : Color.TRANSPARENT;
+    }
+
+    private boolean isCircleEmpty(StackPane pane) {
+        Object empty = pane.getProperties().get(CIRCLE_EMPTY_KEY);
+        return empty instanceof Boolean ? (Boolean) empty : true;
+    }
+
+    private String toRgb(Color color) {
+        return String.format("#%02X%02X%02X",
+                (int) Math.round(color.getRed() * 255),
+                (int) Math.round(color.getGreen() * 255),
+                (int) Math.round(color.getBlue() * 255));
     }
 
     private void animateCircleHover(StackPane pane, Color baseColor, boolean isEmpty, boolean isHover) {
