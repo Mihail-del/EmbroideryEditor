@@ -130,6 +130,8 @@ public class MainController {
 
     private static final String NAV_STATE_KEY = "navState";
 
+    private boolean isVerticalSymmetryActive = false;
+
     private enum NavState {
         IDLE,
         ACTIVE
@@ -175,6 +177,16 @@ public class MainController {
 
         setupStitchLayer();
         resetStitches();
+
+        setupSymmetryButtonAnimations(horizontalSymmetryBox);
+        setupSymmetryButtonAnimations(verticalSymmetryBox);
+
+        if (verticalSymmetryBox != null) {
+            verticalSymmetryBox.setOnMouseClicked(e -> {
+                isVerticalSymmetryActive = !isVerticalSymmetryActive;
+                drawGrid();
+            });
+        }
 
         if (createGridBtn != null && projectNameField != null) {
             projectNameField.setTextFormatter(new TextFormatter<String>(change -> {
@@ -488,12 +500,27 @@ public class MainController {
         }
 
         double cellSize = Math.min(innerWidth, innerHeight) / gridSize;
+
         for (int row = 0; row <= gridSize; row++) {
             double y = GRID_PADDING + (row * cellSize);
             for (int col = 0; col <= gridSize; col++) {
                 double x = GRID_PADDING + (col * cellSize);
                 gc.fillOval(x - DOT_RADIUS, y - DOT_RADIUS, DOT_RADIUS * 2, DOT_RADIUS * 2);
             }
+        }
+
+        if (isVerticalSymmetryActive) {
+            double gridTotalWidth = gridSize * cellSize;
+            double gridTotalHeight = gridSize * cellSize;
+            double exactMiddleX = GRID_PADDING + (gridTotalWidth / 2.0);
+
+            gc.setStroke(Color.web("#D97757", 0.8)); // Same as your accent color, slightly transparent
+            gc.setLineWidth(2.0);
+            gc.setLineDashes(8, 8);
+
+            gc.strokeLine(exactMiddleX, GRID_PADDING, exactMiddleX, GRID_PADDING + gridTotalHeight);
+
+            gc.setLineDashes((double[]) null);
         }
     }
 
