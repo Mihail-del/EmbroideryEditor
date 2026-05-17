@@ -38,19 +38,32 @@
 
             <VBox styleClass="active-thread" spacing="12">
                 <Label styleClass="section-title" text="Active Thread" />
-                <HBox styleClass="thread-colors" spacing="10">
-                    <StackPane fx:id="colorCircle1" styleClass="color-circle" style="-fx-background-color: #D97757;" />
-                    <StackPane fx:id="colorCircle2" styleClass="color-circle" style="-fx-background-color: #F4AAA9;" />
-                    <StackPane fx:id="colorCircle3" styleClass="color-circle, color-empty">
-                        <Label text="+" styleClass="color-empty-text" />
-                    </StackPane>
-                    <StackPane fx:id="colorCircle4" styleClass="color-circle, color-empty">
-                        <Label text="+" styleClass="color-empty-text" />
-                    </StackPane>
-                    <StackPane fx:id="colorCircle5" styleClass="color-circle, color-empty">
-                        <Label text="+" styleClass="color-empty-text" />
-                    </StackPane>
-                </HBox>
+                <VBox spacing="10" alignment="CENTER">
+                    <HBox styleClass="thread-colors" spacing="10">
+                        <StackPane fx:id="colorCircle1" styleClass="color-circle" style="-fx-background-color: #D97757;" />
+                        <StackPane fx:id="colorCircle2" styleClass="color-circle" style="-fx-background-color: #F4AAA9;" />
+                        <StackPane fx:id="colorCircle3" styleClass="color-circle, color-empty">
+                            <Label text="+" styleClass="color-empty-text" />
+                        </StackPane>
+                        <StackPane fx:id="colorCircle4" styleClass="color-circle, color-empty">
+                            <Label text="+" styleClass="color-empty-text" />
+                        </StackPane>
+                    </HBox>
+                    <HBox styleClass="thread-colors" spacing="10">
+                        <StackPane fx:id="colorCircle5" styleClass="color-circle, color-empty">
+                            <Label text="+" styleClass="color-empty-text" />
+                        </StackPane>
+                        <StackPane fx:id="colorCircle6" styleClass="color-circle, color-empty">
+                            <Label text="+" styleClass="color-empty-text" />
+                        </StackPane>
+                        <StackPane fx:id="colorCircle7" styleClass="color-circle, color-empty">
+                            <Label text="+" styleClass="color-empty-text" />
+                        </StackPane>
+                        <StackPane fx:id="colorCircle8" styleClass="color-circle, color-empty">
+                            <Label text="+" styleClass="color-empty-text" />
+                        </StackPane>
+                    </HBox>
+                </VBox>
             </VBox>
         </VBox>
 

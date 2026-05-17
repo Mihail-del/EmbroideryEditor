@@ -334,3 +334,14 @@
     -fx-border-radius: 8px;
     -fx-padding: 5px;
 }
+
+.main-canvas-view .label {
+    -fx-text-fill: -fx-text-on-light;
+}
+
+.main-canvas-view .create-menu .grid-size-controls .label,
+.main-canvas-view .create-menu .grid-size-controls .grid-size-text,
+.main-canvas-view .create-menu .grid-size-controls .section-title,
+.main-canvas-view .create-menu .grid-size-controls .grid-size-btn {
+    -fx-text-fill: -fx-text-primary;
+}

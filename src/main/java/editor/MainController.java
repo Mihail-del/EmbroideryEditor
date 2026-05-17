@@ -93,6 +93,15 @@ public class MainController {
     @FXML
     private StackPane colorCircle5;
 
+    @FXML
+    private StackPane colorCircle6;
+
+    @FXML
+    private StackPane colorCircle7;
+
+    @FXML
+    private StackPane colorCircle8;
+
     private static final String CIRCLE_COLOR_KEY = "circleBaseColor";
     private static final String CIRCLE_EMPTY_KEY = "circleIsEmpty";
 
@@ -212,6 +221,9 @@ public class MainController {
         setupColorCircleAnimations(colorCircle3, Color.TRANSPARENT);
         setupColorCircleAnimations(colorCircle4, Color.TRANSPARENT);
         setupColorCircleAnimations(colorCircle5, Color.TRANSPARENT);
+        setupColorCircleAnimations(colorCircle6, Color.TRANSPARENT);
+        setupColorCircleAnimations(colorCircle7, Color.TRANSPARENT);
+        setupColorCircleAnimations(colorCircle8, Color.TRANSPARENT);
     }
 
     private void setupNavHover(Label label, boolean isActive) {
