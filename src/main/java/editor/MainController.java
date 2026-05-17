@@ -121,7 +121,7 @@ public class MainController {
     private static final int GRID_MIN = 8;
     private static final int GRID_MAX = 96;
     private static final int GRID_STEP = 8;
-    private int gridSize = 64;
+    private int gridSize = 32;
 
     @FXML
     public void initialize() {
