@@ -113,6 +113,7 @@ public class MainController {
 
     private static final String CIRCLE_COLOR_KEY = "circleBaseColor";
     private static final String CIRCLE_EMPTY_KEY = "circleIsEmpty";
+    private static final String ACTIVE_CIRCLE_CLASS = "color-circle-active";
 
     private StackPane activeColorCircle;
     private ColorPicker threadColorPicker;
@@ -579,7 +580,13 @@ public class MainController {
         if (pane == null) {
             return;
         }
+        if (activeColorCircle != null) {
+            activeColorCircle.getStyleClass().remove(ACTIVE_CIRCLE_CLASS);
+        }
         activeColorCircle = pane;
+        if (!activeColorCircle.getStyleClass().contains(ACTIVE_CIRCLE_CLASS)) {
+            activeColorCircle.getStyleClass().add(ACTIVE_CIRCLE_CLASS);
+        }
         Color color = getCircleColor(pane);
         if (color != null && !color.equals(Color.TRANSPARENT)) {
             currentThreadColor = color;

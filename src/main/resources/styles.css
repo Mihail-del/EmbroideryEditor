@@ -118,6 +118,14 @@
     -fx-effect: dropshadow(gaussian, -fx-shadow-light, 10, 0.1, 0, 0);
 }
 
+.color-circle-active {
+    -fx-border-color: rgba(249, 249, 247, 0.9);
+    -fx-border-width: 2px;
+    -fx-border-radius: 50px;
+    -fx-background-insets: 0, 0;
+    -fx-effect: dropshadow(gaussian, rgba(249, 249, 247, 0.35), 8, 0.2, 0, 0);
+}
+
 .color-empty {
     -fx-background-color: rgba(255, 255, 255, 0.03);
     -fx-border-color: -fx-text-muted;
