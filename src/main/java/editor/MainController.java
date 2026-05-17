@@ -22,6 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.image.Image;
 
 public class MainController {
 
@@ -53,6 +54,9 @@ public class MainController {
 
     @FXML
     private Canvas gridCanvas;
+
+    @FXML
+    private Canvas stitchCanvas;
 
     @FXML
     private HBox horizontalSymmetryBox;
@@ -108,6 +112,9 @@ public class MainController {
     private StackPane activeColorCircle;
     private ColorPicker threadColorPicker;
 
+    private Image crossImage;
+    private boolean[][] stitches;
+
     private static final Color NAV_IDLE_TEXT = Color.web("#F9F9F7");
     private static final Color NAV_ACTIVE_TEXT = Color.web("#D97757");
     private static final Color NAV_BORDER_ACTIVE = Color.web("#D97757");
@@ -135,6 +142,7 @@ public class MainController {
     @FXML
     public void initialize() {
         simulateLoading();
+        loadCrossImage();
 
         if (mainCanvasView != null && canvasContainer != null) {
             var squareSize = Bindings.min(
@@ -156,6 +164,9 @@ public class MainController {
             gridCanvas.heightProperty().addListener((obs, oldVal, newVal) -> drawGrid());
             drawGrid();
         }
+
+        setupStitchLayer();
+        resetStitches();
 
         if (createGridBtn != null && projectNameField != null) {
             projectNameField.setTextFormatter(new TextFormatter<String>(change -> {
@@ -426,6 +437,36 @@ public class MainController {
         transition.play();
     }
 
+    private void drawGrid() {
+        if (gridCanvas == null) {
+            return;
+        }
+        double width = gridCanvas.getWidth();
+        double height = gridCanvas.getHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+
+        GraphicsContext gc = gridCanvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, width, height);
+        gc.setFill(GRID_DOT_COLOR);
+
+        double innerWidth = Math.max(0, width - (GRID_PADDING * 2));
+        double innerHeight = Math.max(0, height - (GRID_PADDING * 2));
+        if (innerWidth <= 0 || innerHeight <= 0) {
+            return;
+        }
+
+        double cellSize = Math.min(innerWidth, innerHeight) / gridSize;
+        for (int row = 0; row <= gridSize; row++) {
+            double y = GRID_PADDING + (row * cellSize);
+            for (int col = 0; col <= gridSize; col++) {
+                double x = GRID_PADDING + (col * cellSize);
+                gc.fillOval(x - DOT_RADIUS, y - DOT_RADIUS, DOT_RADIUS * 2, DOT_RADIUS * 2);
+            }
+        }
+    }
+
     private void simulateLoading() {
         if (loadingBar != null) {
             Timeline timeline = new Timeline(
@@ -451,15 +492,43 @@ public class MainController {
         if (gridSizeLabel != null) {
             gridSizeLabel.setText(gridSize + " x " + gridSize);
         }
+        resetStitches();
         drawGrid();
     }
 
-    private void drawGrid() {
-        if (gridCanvas == null) {
+    private void loadCrossImage() {
+        var url = getClass().getResource("/images/cross_sample.png");
+        if (url != null) {
+            crossImage = new Image(url.toExternalForm());
+        }
+    }
+
+    private void setupStitchLayer() {
+        if (stitchCanvas == null || mainCanvasView == null) {
             return;
         }
-        double width = gridCanvas.getWidth();
-        double height = gridCanvas.getHeight();
+        stitchCanvas.widthProperty().bind(mainCanvasView.widthProperty());
+        stitchCanvas.heightProperty().bind(mainCanvasView.heightProperty());
+        stitchCanvas.widthProperty().addListener((obs, oldVal, newVal) -> drawStitches());
+        stitchCanvas.heightProperty().addListener((obs, oldVal, newVal) -> drawStitches());
+        stitchCanvas.setOnMouseClicked(e -> handleStitchClick(e.getX(), e.getY()));
+    }
+
+    private void resetStitches() {
+        stitches = new boolean[gridSize][gridSize];
+        drawStitches();
+    }
+
+    private void handleStitchClick(double x, double y) {
+        if (createMenu != null && createMenu.isVisible()) {
+            return;
+        }
+        if (stitchCanvas == null || stitches == null) {
+            return;
+        }
+
+        double width = stitchCanvas.getWidth();
+        double height = stitchCanvas.getHeight();
         if (width <= 0 || height <= 0) {
             return;
         }
@@ -470,18 +539,56 @@ public class MainController {
             return;
         }
 
-        GraphicsContext gc = gridCanvas.getGraphicsContext2D();
+        double cellSize = Math.min(innerWidth, innerHeight) / gridSize;
+        double gx = x - GRID_PADDING;
+        double gy = y - GRID_PADDING;
+        if (gx < 0 || gy < 0) {
+            return;
+        }
+
+        int col = (int) Math.floor(gx / cellSize);
+        int row = (int) Math.floor(gy / cellSize);
+        if (col < 0 || col >= gridSize || row < 0 || row >= gridSize) {
+            return;
+        }
+
+        stitches[row][col] = true;
+        drawStitches();
+    }
+
+    private void drawStitches() {
+        if (stitchCanvas == null) {
+            return;
+        }
+        double width = stitchCanvas.getWidth();
+        double height = stitchCanvas.getHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+
+        GraphicsContext gc = stitchCanvas.getGraphicsContext2D();
         gc.clearRect(0, 0, width, height);
-        gc.setFill(GRID_DOT_COLOR);
+        if (crossImage == null || crossImage.isError() || stitches == null) {
+            return;
+        }
+
+        double innerWidth = Math.max(0, width - (GRID_PADDING * 2));
+        double innerHeight = Math.max(0, height - (GRID_PADDING * 2));
+        if (innerWidth <= 0 || innerHeight <= 0) {
+            return;
+        }
 
         double cellSize = Math.min(innerWidth, innerHeight) / gridSize;
-        double dotSize = DOT_RADIUS * 2;
+        double imageSize = Math.max(1, cellSize * 0.8);
 
-        for (int y = 0; y <= gridSize; y++) {
-            double py = GRID_PADDING + (y * cellSize);
-            for (int x = 0; x <= gridSize; x++) {
-                double px = GRID_PADDING + (x * cellSize);
-                gc.fillOval(px - DOT_RADIUS, py - DOT_RADIUS, dotSize, dotSize);
+        for (int row = 0; row < gridSize; row++) {
+            for (int col = 0; col < gridSize; col++) {
+                if (!stitches[row][col]) {
+                    continue;
+                }
+                double x = GRID_PADDING + (col * cellSize) + (cellSize - imageSize) / 2.0;
+                double y = GRID_PADDING + (row * cellSize) + (cellSize - imageSize) / 2.0;
+                gc.drawImage(crossImage, x, y, imageSize, imageSize);
             }
         }
     }

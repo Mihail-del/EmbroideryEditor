@@ -84,6 +84,7 @@
                 <StackPane fx:id="canvasContainer">
                     <StackPane fx:id="mainCanvasView" styleClass="main-canvas-view">
                         <Canvas fx:id="gridCanvas" />
+                        <Canvas fx:id="stitchCanvas" />
                         <VBox fx:id="createMenu" styleClass="create-menu" spacing="10" alignment="CENTER">
                             <TextField fx:id="projectNameField" promptText="Project name" styleClass="create-name-field" />
                             <VBox styleClass="grid-size-controls" spacing="10">
