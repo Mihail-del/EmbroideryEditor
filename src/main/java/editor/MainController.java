@@ -23,6 +23,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 
 public class MainController {
 
@@ -113,7 +116,9 @@ public class MainController {
     private ColorPicker threadColorPicker;
 
     private Image crossImage;
+    private Image tintedCrossImage;
     private boolean[][] stitches;
+    private Color currentThreadColor = Color.web("#D97757");
 
     private static final Color NAV_IDLE_TEXT = Color.web("#F9F9F7");
     private static final Color NAV_ACTIVE_TEXT = Color.web("#D97757");
@@ -235,6 +240,10 @@ public class MainController {
         setupColorCircleAnimations(colorCircle6, Color.TRANSPARENT);
         setupColorCircleAnimations(colorCircle7, Color.TRANSPARENT);
         setupColorCircleAnimations(colorCircle8, Color.TRANSPARENT);
+
+        if (colorCircle1 != null) {
+            setActiveThreadCircle(colorCircle1);
+        }
     }
 
     private void setupNavHover(Label label, boolean isActive) {
@@ -306,7 +315,10 @@ public class MainController {
 
         pane.setOnMouseEntered(e -> animateCircleHover(pane, getCircleColor(pane), isCircleEmpty(pane), true));
         pane.setOnMouseExited(e -> animateCircleHover(pane, getCircleColor(pane), isCircleEmpty(pane), false));
-        pane.setOnMouseClicked(e -> openThreadColorPicker(pane));
+        pane.setOnMouseClicked(e -> {
+            setActiveThreadCircle(pane);
+            openThreadColorPicker(pane);
+        });
     }
 
     private void initThreadColorPicker() {
@@ -348,6 +360,9 @@ public class MainController {
         setCircleState(pane, color, false);
         pane.setStyle("-fx-background-color: " + toRgb(color) + ";");
         pane.getChildren().removeIf(node -> node instanceof Label && "+".equals(((Label) node).getText()));
+        currentThreadColor = color;
+        updateTintedCrossImage();
+        drawStitches();
     }
 
     private void setCircleState(StackPane pane, Color color, boolean isEmpty) {
@@ -500,6 +515,7 @@ public class MainController {
         var url = getClass().getResource("/images/cross_sample.png");
         if (url != null) {
             crossImage = new Image(url.toExternalForm());
+            updateTintedCrossImage();
         }
     }
 
@@ -556,6 +572,64 @@ public class MainController {
         drawStitches();
     }
 
+    private void setActiveThreadCircle(StackPane pane) {
+        if (pane == null) {
+            return;
+        }
+        activeColorCircle = pane;
+        Color color = getCircleColor(pane);
+        if (color != null && !color.equals(Color.TRANSPARENT)) {
+            currentThreadColor = color;
+            updateTintedCrossImage();
+            drawStitches();
+        }
+    }
+
+    private void updateTintedCrossImage() {
+        if (crossImage == null || crossImage.isError()) {
+            tintedCrossImage = null;
+            return;
+        }
+        if (currentThreadColor == null) {
+            tintedCrossImage = crossImage;
+            return;
+        }
+
+        int width = (int) crossImage.getWidth();
+        int height = (int) crossImage.getHeight();
+        if (width <= 0 || height <= 0) {
+            tintedCrossImage = crossImage;
+            return;
+        }
+
+        WritableImage tinted = new WritableImage(width, height);
+        PixelReader reader = crossImage.getPixelReader();
+        PixelWriter writer = tinted.getPixelWriter();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Color src = reader.getColor(x, y);
+                double alpha = src.getOpacity();
+                if (alpha <= 0.0) {
+                    writer.setColor(x, y, Color.TRANSPARENT);
+                    continue;
+                }
+                writer.setColor(x, y, new Color(
+                        clamp(currentThreadColor.getRed()),
+                        clamp(currentThreadColor.getGreen()),
+                        clamp(currentThreadColor.getBlue()),
+                        alpha
+                ));
+            }
+        }
+
+        tintedCrossImage = tinted;
+    }
+
+    private double clamp(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
+    }
+
     private void drawStitches() {
         if (stitchCanvas == null) {
             return;
@@ -581,6 +655,7 @@ public class MainController {
         double cellSize = Math.min(innerWidth, innerHeight) / gridSize;
         double imageSize = Math.max(1, cellSize * 0.8);
 
+        Image paintImage = tintedCrossImage != null ? tintedCrossImage : crossImage;
         for (int row = 0; row < gridSize; row++) {
             for (int col = 0; col < gridSize; col++) {
                 if (!stitches[row][col]) {
@@ -588,7 +663,7 @@ public class MainController {
                 }
                 double x = GRID_PADDING + (col * cellSize) + (cellSize - imageSize) / 2.0;
                 double y = GRID_PADDING + (row * cellSize) + (cellSize - imageSize) / 2.0;
-                gc.drawImage(crossImage, x, y, imageSize, imageSize);
+                gc.drawImage(paintImage, x, y, imageSize, imageSize);
             }
         }
     }
