@@ -116,7 +116,7 @@
             <bottom>
                 <HBox spacing="40" styleClass="bottom-toolbar">
                     <Label fx:id="clearCanvasBtn" text="Clear Canvas" />
-                    <Label text="Eraser" />
+                    <Label fx:id="eraserBtn" text="Eraser" />
                     <Label styleClass="animate-button" text="Animate" />
                 </HBox>
             </bottom>

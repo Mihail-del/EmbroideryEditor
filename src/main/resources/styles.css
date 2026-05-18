@@ -281,6 +281,16 @@
     -fx-cursor: hand;
 }
 
+.eraser-active {
+    -fx-background-color: -fx-accent-orange;
+    -fx-text-fill: -fx-text-on-light;
+    -fx-padding: 8px 20px;
+    -fx-background-radius: 8px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, -fx-shadow-orange, 12, 0.3, 0, 0);
+}
+
 
 /* ------------ LOADING SCREEN ------------ */
 

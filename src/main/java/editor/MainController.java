@@ -55,6 +55,9 @@ public class MainController {
     private Label clearCanvasBtn;
 
     @FXML
+    private Label eraserBtn;
+
+    @FXML
     private StackPane canvasContainer;
 
     @FXML
@@ -135,6 +138,8 @@ public class MainController {
 
     private boolean isVerticalSymmetryActive = false;
     private boolean isHorizontalSymmetryActive = false;
+
+    private boolean isEraserActive = false;
 
     private enum NavState {
         IDLE,
@@ -259,6 +264,11 @@ public class MainController {
         if (clearCanvasBtn != null) {
             setupSymmetryButtonAnimations(clearCanvasBtn);
             clearCanvasBtn.setOnMouseClicked(e -> clearCanvas());
+        }
+
+        if (eraserBtn != null) {
+            setupSymmetryButtonAnimations(eraserBtn);
+            eraserBtn.setOnMouseClicked(e -> toggleEraser());
         }
 
         initThreadColorPicker();
@@ -604,14 +614,22 @@ public class MainController {
         resetStitches();
     }
 
+    private void toggleEraser() {
+        isEraserActive = !isEraserActive;
+        if (eraserBtn != null) {
+            if (isEraserActive) {
+                eraserBtn.getStyleClass().add("eraser-active");
+            } else {
+                eraserBtn.getStyleClass().remove("eraser-active");
+            }
+        }
+    }
+
     private void handleStitchClick(double x, double y) {
         if (createMenu != null && createMenu.isVisible()) {
             return;
         }
         if (stitchCanvas == null || stitchColors == null) {
-            return;
-        }
-        if (currentThreadColor == null || currentThreadColor.equals(Color.TRANSPARENT)) {
             return;
         }
 
@@ -640,18 +658,33 @@ public class MainController {
             return;
         }
 
-        stitchColors[row][col] = currentThreadColor;
-
-        if (isVerticalSymmetryActive) {
-            stitchColors[row][(gridSize - 1) - col] = currentThreadColor;
-        }
-
-        if (isHorizontalSymmetryActive) {
-            stitchColors[(gridSize - 1) - row][col] = currentThreadColor;
-        }
-
-        if (isVerticalSymmetryActive && isHorizontalSymmetryActive) {
-            stitchColors[(gridSize - 1) - row][(gridSize - 1) - col] = currentThreadColor;
+        if (isEraserActive) {
+            // Eraser mode: remove stitches
+            stitchColors[row][col] = null;
+            if (isVerticalSymmetryActive) {
+                stitchColors[row][(gridSize - 1) - col] = null;
+            }
+            if (isHorizontalSymmetryActive) {
+                stitchColors[(gridSize - 1) - row][col] = null;
+            }
+            if (isVerticalSymmetryActive && isHorizontalSymmetryActive) {
+                stitchColors[(gridSize - 1) - row][(gridSize - 1) - col] = null;
+            }
+        } else {
+            // Normal mode: add stitches
+            if (currentThreadColor == null || currentThreadColor.equals(Color.TRANSPARENT)) {
+                return;
+            }
+            stitchColors[row][col] = currentThreadColor;
+            if (isVerticalSymmetryActive) {
+                stitchColors[row][(gridSize - 1) - col] = currentThreadColor;
+            }
+            if (isHorizontalSymmetryActive) {
+                stitchColors[(gridSize - 1) - row][col] = currentThreadColor;
+            }
+            if (isVerticalSymmetryActive && isHorizontalSymmetryActive) {
+                stitchColors[(gridSize - 1) - row][(gridSize - 1) - col] = currentThreadColor;
+            }
         }
 
         drawStitches();
