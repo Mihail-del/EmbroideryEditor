@@ -629,6 +629,19 @@ public class MainController {
         }
 
         stitchColors[row][col] = currentThreadColor;
+
+        if (isVerticalSymmetryActive) {
+            stitchColors[row][(gridSize - 1) - col] = currentThreadColor;
+        }
+
+        if (isHorizontalSymmetryActive) {
+            stitchColors[(gridSize - 1) - row][col] = currentThreadColor;
+        }
+
+        if (isVerticalSymmetryActive && isHorizontalSymmetryActive) {
+            stitchColors[(gridSize - 1) - row][(gridSize - 1) - col] = currentThreadColor;
+        }
+
         drawStitches();
     }
 
