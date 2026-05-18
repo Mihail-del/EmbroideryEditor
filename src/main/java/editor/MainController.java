@@ -52,6 +52,9 @@ public class MainController {
     private Label infoNavLabel;
 
     @FXML
+    private Label clearCanvasBtn;
+
+    @FXML
     private StackPane canvasContainer;
 
     @FXML
@@ -252,6 +255,11 @@ public class MainController {
 
         setupSymmetryButtonAnimations(gridMinusBtn);
         setupSymmetryButtonAnimations(gridPlusBtn);
+
+        if (clearCanvasBtn != null) {
+            setupSymmetryButtonAnimations(clearCanvasBtn);
+            clearCanvasBtn.setOnMouseClicked(e -> clearCanvas());
+        }
 
         initThreadColorPicker();
 
@@ -590,6 +598,10 @@ public class MainController {
     private void resetStitches() {
         stitchColors = new Color[gridSize][gridSize];
         drawStitches();
+    }
+
+    private void clearCanvas() {
+        resetStitches();
     }
 
     private void handleStitchClick(double x, double y) {
