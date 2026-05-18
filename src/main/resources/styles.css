@@ -46,9 +46,8 @@
 
 .nav-controls {
     -fx-background-color: -fx-bg-tertiary;
-    -fx-padding: 8px 20px;
-    -fx-spacing: 20px;
-    -fx-min-height: 40px;
+    -fx-padding: 10px 30px;
+    -fx-min-height: 52px;
     -fx-border-color: -fx-border-dark;
     -fx-border-width: 1px;
     -fx-border-radius: 12px;
@@ -67,9 +66,11 @@
 }
 
 .nav-link {
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
     -fx-text-fill: -fx-text-primary;
     -fx-cursor: hand;
+    -fx-padding: 4px 10px;
 }
 
 .active-nav {

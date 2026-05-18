@@ -71,10 +71,14 @@
             <top>
                 <HBox styleClass="top-nav-bar">
                     <Region HBox.hgrow="ALWAYS" />
-                    <HBox spacing="12" styleClass="nav-controls">
-                        <Label fx:id="saveNavLabel" styleClass="nav-link" text="Save" />
-                        <Label fx:id="openNavLabel" styleClass="nav-link" text="Open" />
-                        <Label fx:id="infoNavLabel" styleClass="nav-link" text="Info" />
+                    <HBox spacing="25">
+                        <HBox spacing="20" styleClass="nav-controls">
+                            <Label fx:id="saveNavLabel" styleClass="nav-link" text="Save" />
+                            <Label fx:id="openNavLabel" styleClass="nav-link" text="Open" />
+                        </HBox>
+                        <HBox styleClass="nav-controls">
+                            <Label fx:id="infoNavLabel" styleClass="nav-link" text="Info" />
+                        </HBox>
                     </HBox>
                     <Region HBox.hgrow="ALWAYS" />
                 </HBox>
