@@ -262,12 +262,10 @@ public class MainController {
         setupSymmetryButtonAnimations(gridPlusBtn);
 
         if (clearCanvasBtn != null) {
-            setupSymmetryButtonAnimations(clearCanvasBtn);
             clearCanvasBtn.setOnMouseClicked(e -> clearCanvas());
         }
 
         if (eraserBtn != null) {
-            setupSymmetryButtonAnimations(eraserBtn);
             eraserBtn.setOnMouseClicked(e -> toggleEraser());
         }
 
