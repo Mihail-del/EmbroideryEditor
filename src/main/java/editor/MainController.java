@@ -43,6 +43,9 @@ public class MainController {
     private Label activeNavLabel;
 
     @FXML
+    private Label createNavLabel;
+
+    @FXML
     private Label saveNavLabel;
 
     @FXML
@@ -251,6 +254,10 @@ public class MainController {
         activeNavLabel = (Label) mainApplicationLayout.lookup(".active-nav");
         if (activeNavLabel != null)
             setupNavHover(activeNavLabel, true);
+        if (createNavLabel != null) {
+            setupNavHover(createNavLabel, false);
+            createNavLabel.setOnMouseClicked(e -> showCreateMenu());
+        }
         setupNavHover(saveNavLabel, false);
         setupNavHover(openNavLabel, false);
         setupNavHover(infoNavLabel, false);
@@ -610,6 +617,14 @@ public class MainController {
 
     private void clearCanvas() {
         resetStitches();
+    }
+
+    private void showCreateMenu() {
+        clearCanvas();
+        if (createMenu != null) {
+            createMenu.setManaged(true);
+            createMenu.setVisible(true);
+        }
     }
 
     private void toggleEraser() {
