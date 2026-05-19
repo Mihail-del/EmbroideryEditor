@@ -152,6 +152,8 @@ public class MainController {
     private boolean isHorizontalSymmetryActive = false;
 
     private boolean isEraserActive = false;
+    private VBox saveWarningMenu;
+    private Runnable pendingAction;
 
     private enum NavState {
         IDLE,
@@ -265,7 +267,7 @@ public class MainController {
             setupNavHover(activeNavLabel, true);
         if (createNavLabel != null) {
             setupNavHover(createNavLabel, false);
-            createNavLabel.setOnMouseClicked(e -> showCreateMenu());
+            createNavLabel.setOnMouseClicked(e -> runWithSaveCheck(this::showCreateMenu));
         }
         setupNavHover(saveNavLabel, false);
         if (saveNavLabel != null) {
@@ -273,7 +275,7 @@ public class MainController {
         }
         setupNavHover(openNavLabel, false);
         if (openNavLabel != null) {
-            openNavLabel.setOnMouseClicked(e -> openProject());
+            openNavLabel.setOnMouseClicked(e -> runWithSaveCheck(this::openProject));
         }
         setupNavHover(infoNavLabel, false);
 
@@ -304,6 +306,82 @@ public class MainController {
 
         if (colorCircle1 != null) {
             setActiveThreadCircle(colorCircle1);
+        }
+
+        initSaveWarningMenu();
+    }
+
+    private void initSaveWarningMenu() {
+        if (mainCanvasView == null) return;
+        saveWarningMenu = new VBox(15);
+        saveWarningMenu.getStyleClass().add("create-menu");
+        saveWarningMenu.setAlignment(javafx.geometry.Pos.CENTER);
+
+        Label warningLabel = new Label("You have unsaved changes.\nDo you want to save before proceeding?");
+        warningLabel.setStyle("-fx-text-fill: #F9F9F7; -fx-font-size: 16px; -fx-text-alignment: center;");
+
+        Button saveBtn = new Button("Save");
+        saveBtn.getStyleClass().add("create-grid-btn");
+        saveBtn.setOnAction(e -> {
+            saveProject();
+            hideWarningMenu();
+            if (pendingAction != null) pendingAction.run();
+        });
+
+        Button dontSaveBtn = new Button("Don't Save");
+        dontSaveBtn.getStyleClass().add("create-grid-btn");
+        dontSaveBtn.setOnAction(e -> {
+            hideWarningMenu();
+            if (pendingAction != null) pendingAction.run();
+        });
+
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.getStyleClass().add("create-grid-btn");
+        cancelBtn.setOnAction(e -> {
+            hideWarningMenu();
+            pendingAction = null;
+        });
+
+        HBox btns = new HBox(15, saveBtn, dontSaveBtn, cancelBtn);
+        btns.setAlignment(javafx.geometry.Pos.CENTER);
+
+        saveWarningMenu.getChildren().addAll(warningLabel, btns);
+        saveWarningMenu.setVisible(false);
+        saveWarningMenu.setManaged(false);
+
+        mainCanvasView.getChildren().add(saveWarningMenu);
+    }
+
+    private void hideWarningMenu() {
+        if (saveWarningMenu != null) {
+            saveWarningMenu.setVisible(false);
+            saveWarningMenu.setManaged(false);
+        }
+    }
+
+    private boolean isCanvasClear() {
+        if (stitchColors == null) return true;
+        for (int r = 0; r < gridSize; r++) {
+            for (int c = 0; c < gridSize; c++) {
+                if (stitchColors[r][c] != null) return false;
+            }
+        }
+        return true;
+    }
+
+    private void runWithSaveCheck(Runnable action) {
+        if (createMenu != null && createMenu.isVisible()) {
+            action.run();
+            return;
+        }
+        if (isCanvasClear()) {
+            action.run();
+        } else {
+            pendingAction = action;
+            if (saveWarningMenu != null) {
+                saveWarningMenu.setVisible(true);
+                saveWarningMenu.setManaged(true);
+            }
         }
     }
 
