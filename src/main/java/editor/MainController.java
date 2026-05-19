@@ -28,6 +28,13 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class MainController {
 
@@ -259,6 +266,9 @@ public class MainController {
             createNavLabel.setOnMouseClicked(e -> showCreateMenu());
         }
         setupNavHover(saveNavLabel, false);
+        if (saveNavLabel != null) {
+            saveNavLabel.setOnMouseClicked(e -> saveProject());
+        }
         setupNavHover(openNavLabel, false);
         setupNavHover(infoNavLabel, false);
 
@@ -617,6 +627,48 @@ public class MainController {
 
     private void clearCanvas() {
         resetStitches();
+    }
+
+    private void saveProject() {
+        String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
+                             ? projectNameField.getText().trim()
+                             : "project";
+
+        Map<String, Object> projectData = new HashMap<>();
+        projectData.put("gridSize", gridSize);
+
+        List<Map<String, Object>> stitches = new ArrayList<>();
+        if (stitchColors != null) {
+            for (int r = 0; r < gridSize; r++) {
+                for (int c = 0; c < gridSize; c++) {
+                    if (stitchColors[r][c] != null) {
+                        Map<String, Object> stitch = new HashMap<>();
+                        stitch.put("row", r);
+                        stitch.put("col", c);
+                        stitch.put("color", toRgba(stitchColors[r][c]));
+                        stitches.add(stitch);
+                    }
+                }
+            }
+        }
+        projectData.put("stitches", stitches);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(projectData);
+
+        try {
+            File dir = new File("src/main/resources/templates");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            File file = new File(dir, projectName + ".json");
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(json);
+            }
+            System.out.println("Saved project to: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void showCreateMenu() {
