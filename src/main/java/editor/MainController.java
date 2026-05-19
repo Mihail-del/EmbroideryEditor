@@ -311,7 +311,11 @@ public class MainController {
         initSaveWarningMenu();
 
         Timeline autoSaveTimeline = new Timeline(
-            new KeyFrame(Duration.seconds(10), e -> saveProject())
+            new KeyFrame(Duration.seconds(10), e -> {
+                if (!isCanvasClear()) {
+                    saveProject();
+                }
+            })
         );
         autoSaveTimeline.setCycleCount(Timeline.INDEFINITE);
         autoSaveTimeline.play();
