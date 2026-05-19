@@ -37,6 +37,11 @@ import java.nio.file.Files;
 import java.util.Locale;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.SnapshotParameters;
+import javafx.stage.FileChooser;
 
 public class MainController {
 
@@ -153,6 +158,7 @@ public class MainController {
 
     private boolean isEraserActive = false;
     private VBox saveWarningMenu;
+    private VBox saveOptionsMenu;
     private Runnable pendingAction;
 
     private enum NavState {
@@ -271,7 +277,7 @@ public class MainController {
         }
         setupNavHover(saveNavLabel, false);
         if (saveNavLabel != null) {
-            saveNavLabel.setOnMouseClicked(e -> saveProject());
+            saveNavLabel.setOnMouseClicked(e -> showSaveOptionsMenu());
         }
         setupNavHover(openNavLabel, false);
         if (openNavLabel != null) {
@@ -309,6 +315,7 @@ public class MainController {
         }
 
         initSaveWarningMenu();
+        initSaveOptionsMenu();
 
         Timeline autoSaveTimeline = new Timeline(
             new KeyFrame(Duration.seconds(10), e -> {
@@ -362,6 +369,95 @@ public class MainController {
         saveWarningMenu.setManaged(false);
 
         mainCanvasView.getChildren().add(saveWarningMenu);
+    }
+
+    private void initSaveOptionsMenu() {
+        if (mainCanvasView == null) return;
+        saveOptionsMenu = new VBox(20);
+        saveOptionsMenu.getStyleClass().add("save-options-menu");
+        saveOptionsMenu.setAlignment(javafx.geometry.Pos.CENTER);
+
+        Label titleLabel = new Label("Save Options");
+        titleLabel.getStyleClass().add("warning-label");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
+
+        // Template Block
+        VBox templateBlock = new VBox(10);
+        templateBlock.setAlignment(javafx.geometry.Pos.CENTER);
+        templateBlock.getStyleClass().add("save-block-frame");
+        Label templateLabel = new Label("Save as Template");
+        templateLabel.getStyleClass().add("warning-label");
+
+        Button jsonBtn = new Button(".JSON");
+        jsonBtn.getStyleClass().addAll("create-grid-btn");
+        jsonBtn.setPrefWidth(240);
+        jsonBtn.setOnAction(e -> {
+            hideSaveOptionsMenu();
+            saveProjectAsJson();
+        });
+        templateBlock.getChildren().addAll(templateLabel, jsonBtn);
+
+        // Image Block
+        VBox imageBlock = new VBox(10);
+        imageBlock.setAlignment(javafx.geometry.Pos.CENTER);
+        imageBlock.getStyleClass().add("save-block-frame");
+        Label imageLabel = new Label("Save as Image");
+        imageLabel.getStyleClass().add("warning-label");
+
+        HBox imageBtns = new HBox(15);
+        imageBtns.setAlignment(javafx.geometry.Pos.CENTER);
+
+        Button pngBtn = new Button(".PNG");
+        pngBtn.getStyleClass().addAll("create-grid-btn");
+        pngBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
+        pngBtn.setOnAction(e -> {
+            hideSaveOptionsMenu();
+            saveProjectAsImage("png");
+        });
+
+        Button jpgBtn = new Button(".JPG");
+        jpgBtn.getStyleClass().addAll("create-grid-btn");
+        jpgBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
+        jpgBtn.setOnAction(e -> {
+            hideSaveOptionsMenu();
+            saveProjectAsImage("jpg");
+        });
+
+        Button gifBtn = new Button(".GIF");
+        gifBtn.getStyleClass().addAll("create-grid-btn");
+        gifBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
+        gifBtn.setOnAction(e -> {
+            hideSaveOptionsMenu();
+            saveProjectAsImage("gif");
+        });
+
+        imageBtns.getChildren().addAll(pngBtn, jpgBtn, gifBtn);
+        imageBlock.getChildren().addAll(imageLabel, imageBtns);
+
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.getStyleClass().addAll("create-grid-btn", "warning-cancel-btn");
+        cancelBtn.setPrefWidth(120);
+        cancelBtn.setOnAction(e -> hideSaveOptionsMenu());
+
+        saveOptionsMenu.getChildren().addAll(titleLabel, templateBlock, imageBlock, cancelBtn);
+        saveOptionsMenu.setVisible(false);
+        saveOptionsMenu.setManaged(false);
+
+        mainCanvasView.getChildren().add(saveOptionsMenu);
+    }
+
+    private void showSaveOptionsMenu() {
+        if (saveOptionsMenu != null) {
+            saveOptionsMenu.setVisible(true);
+            saveOptionsMenu.setManaged(true);
+        }
+    }
+
+    private void hideSaveOptionsMenu() {
+        if (saveOptionsMenu != null) {
+            saveOptionsMenu.setVisible(false);
+            saveOptionsMenu.setManaged(false);
+        }
     }
 
     private void hideWarningMenu() {
@@ -760,9 +856,90 @@ public class MainController {
             try (FileWriter writer = new FileWriter(file)) {
                 writer.write(json);
             }
-            System.out.println("Saved project to: " + file.getAbsolutePath());
+            System.out.println("Auto-saved project to: " + file.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void saveProjectAsJson() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Project JSON");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+
+        String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
+                             ? projectNameField.getText().trim()
+                             : "project";
+        fileChooser.setInitialFileName(projectName + ".json");
+
+        File file = fileChooser.showSaveDialog(mainApplicationLayout.getScene().getWindow());
+        if (file != null) {
+            Map<String, Object> projectData = new HashMap<>();
+            projectData.put("gridSize", gridSize);
+
+            List<Map<String, Object>> stitches = new ArrayList<>();
+            if (stitchColors != null) {
+                for (int r = 0; r < gridSize; r++) {
+                    for (int c = 0; c < gridSize; c++) {
+                        if (stitchColors[r][c] != null) {
+                            Map<String, Object> stitch = new HashMap<>();
+                            stitch.put("row", r);
+                            stitch.put("col", c);
+                            stitch.put("color", toRgba(stitchColors[r][c]));
+                            stitches.add(stitch);
+                        }
+                    }
+                }
+            }
+            projectData.put("stitches", stitches);
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(gson.toJson(projectData));
+                System.out.println("Manually saved project JSON to: " + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void saveProjectAsImage(String format) {
+        if (mainCanvasView == null) return;
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Image as " + format.toUpperCase());
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(format.toUpperCase() + " Image", "*." + format));
+
+        String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
+                             ? projectNameField.getText().trim()
+                             : "project";
+        fileChooser.setInitialFileName(projectName + "." + format);
+
+        File file = fileChooser.showSaveDialog(mainApplicationLayout.getScene().getWindow());
+        if (file != null) {
+            SnapshotParameters params = new SnapshotParameters();
+            params.setFill(Color.TRANSPARENT);
+            WritableImage snapshot = mainCanvasView.snapshot(params, null);
+            BufferedImage bufferedImage = SwingFXUtils.fromFXImage(snapshot, null);
+
+            // For formats like JPG that don't support alpha, we might need a background.
+            if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
+                BufferedImage jpgImage = new BufferedImage(
+                    bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+                java.awt.Graphics2D g2d = jpgImage.createGraphics();
+                g2d.setColor(java.awt.Color.WHITE);
+                g2d.fillRect(0, 0, jpgImage.getWidth(), jpgImage.getHeight());
+                g2d.drawImage(bufferedImage, 0, 0, null);
+                g2d.dispose();
+                bufferedImage = jpgImage;
+            }
+
+            try {
+                ImageIO.write(bufferedImage, format, file);
+                System.out.println("Exported Image to: " + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
