@@ -721,6 +721,11 @@ public class MainController {
                     projectNameField.setText(name);
                 }
 
+                if (createMenu != null) {
+                    createMenu.setManaged(false);
+                    createMenu.setVisible(false);
+                }
+
                 drawGrid();
                 drawStitches();
                 System.out.println("Opened project from: " + selectedFile.getAbsolutePath());
