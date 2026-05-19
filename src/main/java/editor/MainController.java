@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Locale;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -270,6 +272,9 @@ public class MainController {
             saveNavLabel.setOnMouseClicked(e -> saveProject());
         }
         setupNavHover(openNavLabel, false);
+        if (openNavLabel != null) {
+            openNavLabel.setOnMouseClicked(e -> openProject());
+        }
         setupNavHover(infoNavLabel, false);
 
         setupSymmetryButtonAnimations(horizontalSymmetryBox);
@@ -352,7 +357,7 @@ public class MainController {
     }
 
     private String toRgba(Color color) {
-        return String.format("rgba(%d, %d, %d, %.3f)",
+        return String.format(Locale.US, "rgba(%d, %d, %d, %.3f)",
                 (int) Math.round(color.getRed() * 255),
                 (int) Math.round(color.getGreen() * 255),
                 (int) Math.round(color.getBlue() * 255),
@@ -668,6 +673,84 @@ public class MainController {
             System.out.println("Saved project to: " + file.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void openProject() {
+        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+        fileChooser.setTitle("Open Project");
+        File initialDir = new File("src/main/resources/templates");
+        if (initialDir.exists()) {
+            fileChooser.setInitialDirectory(initialDir);
+        }
+        fileChooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("JSON Files", "*.json"));
+
+        File selectedFile = fileChooser.showOpenDialog(mainApplicationLayout.getScene().getWindow());
+        if (selectedFile != null) {
+            try {
+                String content = new String(Files.readAllBytes(selectedFile.toPath()));
+                Gson gson = new Gson();
+                Map<String, Object> projectData = gson.fromJson(content, Map.class);
+
+                if (projectData.containsKey("gridSize")) {
+                    gridSize = Math.max(GRID_MIN, Math.min(GRID_MAX, ((Double) projectData.get("gridSize")).intValue()));
+                    if (gridSizeLabel != null) {
+                        gridSizeLabel.setText(gridSize + " x " + gridSize);
+                    }
+                }
+
+                resetStitches();
+
+                if (projectData.containsKey("stitches")) {
+                    List<Map<String, Object>> stitches = (List<Map<String, Object>>) projectData.get("stitches");
+                    for (Map<String, Object> stitch : stitches) {
+                        int r = ((Double) stitch.get("row")).intValue();
+                        int c = ((Double) stitch.get("col")).intValue();
+                        String colorStr = (String) stitch.get("color");
+                        if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && colorStr != null) {
+                            stitchColors[r][c] = parseRgba(colorStr);
+                        }
+                    }
+                }
+
+                String name = selectedFile.getName();
+                if (name.endsWith(".json")) {
+                    name = name.substring(0, name.length() - 5);
+                }
+                if (projectNameField != null) {
+                    projectNameField.setText(name);
+                }
+
+                drawGrid();
+                drawStitches();
+                System.out.println("Opened project from: " + selectedFile.getAbsolutePath());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private Color parseRgba(String rgba) {
+        if (rgba == null || rgba.isEmpty()) return Color.TRANSPARENT;
+        if (rgba.startsWith("rgba(")) {
+            String inner = rgba.substring(5, rgba.length() - 1);
+            String[] parts = inner.split(",");
+            if (parts.length >= 4) {
+                try {
+                    int r = Integer.parseInt(parts[0].trim());
+                    int g = Integer.parseInt(parts[1].trim());
+                    int b = Integer.parseInt(parts[2].trim());
+                    double a = Double.parseDouble(parts[3].trim());
+                    return Color.rgb(r, g, b, a);
+                } catch (NumberFormatException e) {
+                    // Fallback to web
+                }
+            }
+        }
+        try {
+            return Color.web(rgba);
+        } catch (Exception e) {
+            return Color.TRANSPARENT;
         }
     }
 
