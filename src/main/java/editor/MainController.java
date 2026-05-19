@@ -313,15 +313,17 @@ public class MainController {
 
     private void initSaveWarningMenu() {
         if (mainCanvasView == null) return;
-        saveWarningMenu = new VBox(15);
-        saveWarningMenu.getStyleClass().add("create-menu");
+        saveWarningMenu = new VBox(20);
+        saveWarningMenu.getStyleClass().add("warning-menu");
         saveWarningMenu.setAlignment(javafx.geometry.Pos.CENTER);
 
         Label warningLabel = new Label("You have unsaved changes.\nDo you want to save before proceeding?");
-        warningLabel.setStyle("-fx-text-fill: #F9F9F7; -fx-font-size: 16px; -fx-text-alignment: center;");
+        warningLabel.setWrapText(true);
+        warningLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        warningLabel.getStyleClass().add("warning-label");
 
         Button saveBtn = new Button("Save");
-        saveBtn.getStyleClass().add("create-grid-btn");
+        saveBtn.getStyleClass().addAll("create-grid-btn", "warning-save-btn");
         saveBtn.setOnAction(e -> {
             saveProject();
             hideWarningMenu();
@@ -329,14 +331,14 @@ public class MainController {
         });
 
         Button dontSaveBtn = new Button("Don't Save");
-        dontSaveBtn.getStyleClass().add("create-grid-btn");
+        dontSaveBtn.getStyleClass().addAll("create-grid-btn", "warning-dont-save-btn");
         dontSaveBtn.setOnAction(e -> {
             hideWarningMenu();
             if (pendingAction != null) pendingAction.run();
         });
 
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.getStyleClass().add("create-grid-btn");
+        cancelBtn.getStyleClass().addAll("create-grid-btn", "warning-cancel-btn");
         cancelBtn.setOnAction(e -> {
             hideWarningMenu();
             pendingAction = null;
