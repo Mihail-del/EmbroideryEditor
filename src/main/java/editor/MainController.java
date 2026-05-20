@@ -538,12 +538,15 @@ public class MainController {
         Label recentLabel = new Label("Recent Projects");
         recentLabel.getStyleClass().add("warning-label");
 
-        VBox recentList = new VBox(5);
+        javafx.scene.layout.TilePane recentList = new javafx.scene.layout.TilePane();
         recentList.setAlignment(javafx.geometry.Pos.CENTER);
+        recentList.setHgap(10);
+        recentList.setVgap(10);
+        recentList.setPrefColumns(2);
 
         javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(recentList);
         scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent; -fx-padding: 0;");
+        scrollPane.getStyleClass().add("styled-scroll-pane");
         scrollPane.setPrefViewportHeight(140);
         scrollPane.setMaxHeight(140);
         scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -590,7 +593,7 @@ public class MainController {
     }
 
     private void updateRecentProjectsList() {
-        VBox recentList = (VBox) openMenu.getProperties().get("recentList");
+        javafx.scene.layout.TilePane recentList = (javafx.scene.layout.TilePane) openMenu.getProperties().get("recentList");
         recentList.getChildren().clear();
         File dir = new File("src/main/resources/templates");
         if (dir.exists() && dir.isDirectory()) {
@@ -601,7 +604,7 @@ public class MainController {
                     Button fileBtn = new Button(file.getName().replace(".json", ""));
                     fileBtn.getStyleClass().addAll("create-grid-btn");
                     fileBtn.setStyle("-fx-background-color: rgba(69, 69, 67, 0.6); -fx-text-fill: -fx-text-primary; -fx-border-color: rgba(130, 130, 128, 0.6); -fx-border-width: 1px; -fx-font-size: 14px; -fx-padding: 8px 15px;");
-                    fileBtn.setPrefWidth(220);
+                    fileBtn.setPrefWidth(140);
                     fileBtn.setOnAction(e -> {
                         hideOpenMenu();
                         loadProjectFromFile(file);

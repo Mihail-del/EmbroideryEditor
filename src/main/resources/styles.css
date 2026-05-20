@@ -483,6 +483,54 @@
     -fx-padding: 5px;
 }
 
+/* ------------ SCROLL PANE & SCROLL BAR ------------ */
+
+.styled-scroll-pane {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.styled-scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.styled-scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8px;
+}
+
+.styled-scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: rgba(44, 44, 43, 0.5);
+    -fx-background-radius: 4px;
+    -fx-border-color: rgba(31, 31, 30, 0.9);
+    -fx-border-radius: 4px;
+}
+
+.styled-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(217, 119, 87, 0.8);
+    -fx-background-radius: 4px;
+}
+
+.styled-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #e58768;
+}
+
+.styled-scroll-pane .scroll-bar:vertical .increment-button,
+.styled-scroll-pane .scroll-bar:vertical .decrement-button {
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.styled-scroll-pane .scroll-bar:vertical .increment-arrow,
+.styled-scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
 .main-canvas-view .label {
     -fx-text-fill: -fx-text-on-light;
 }
