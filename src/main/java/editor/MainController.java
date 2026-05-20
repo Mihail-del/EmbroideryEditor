@@ -163,6 +163,7 @@ public class MainController {
     private boolean isEraserActive = false;
     private VBox saveWarningMenu;
     private VBox saveOptionsMenu;
+    private VBox openMenu;
     private Runnable pendingAction;
 
     private enum NavState {
@@ -294,7 +295,7 @@ public class MainController {
         }
         setupNavHover(openNavLabel, false);
         if (openNavLabel != null) {
-            openNavLabel.setOnMouseClicked(e -> runWithSaveCheck(this::openProject));
+            openNavLabel.setOnMouseClicked(e -> runWithSaveCheck(this::showOpenMenu));
         }
         setupNavHover(infoNavLabel, false);
 
@@ -329,6 +330,7 @@ public class MainController {
 
         initSaveWarningMenu();
         initSaveOptionsMenu();
+        initOpenMenu();
 
         Timeline autoSaveTimeline = new Timeline(
             new KeyFrame(Duration.seconds(10), e -> {
@@ -489,6 +491,75 @@ public class MainController {
         mainCanvasView.getChildren().add(saveOptionsMenu);
     }
 
+    private void initOpenMenu() {
+        if (mainCanvasView == null) return;
+        openMenu = new VBox(20);
+        openMenu.getStyleClass().add("save-options-menu");
+        openMenu.setAlignment(javafx.geometry.Pos.CENTER);
+
+        StackPane headerPane = new StackPane();
+
+        Label titleLabel = new Label("Open Project");
+        titleLabel.getStyleClass().add("warning-label");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
+
+        Label closeBtn = new Label();
+        ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
+        closeIcon.setFitWidth(14);
+        closeIcon.setFitHeight(14);
+        closeBtn.setGraphic(closeIcon);
+        closeBtn.getStyleClass().add("close-btn");
+        closeBtn.setOnMouseClicked(e -> hideOpenMenu());
+
+        StackPane.setAlignment(closeBtn, javafx.geometry.Pos.TOP_RIGHT);
+        StackPane.setMargin(closeBtn, new javafx.geometry.Insets(-10, -10, 0, 0));
+
+        headerPane.getChildren().addAll(titleLabel, closeBtn);
+
+        // Section 1: Open from file
+        VBox fileBlock = new VBox(10);
+        fileBlock.setAlignment(javafx.geometry.Pos.CENTER);
+        fileBlock.getStyleClass().add("save-block-frame");
+        Label fileLabel = new Label("Open from JSON");
+        fileLabel.getStyleClass().add("warning-label");
+        Button browseBtn = new Button("Browse...");
+        browseBtn.getStyleClass().addAll("create-grid-btn");
+        browseBtn.setPrefWidth(240);
+        browseBtn.setOnAction(e -> {
+            hideOpenMenu();
+            openProjectFromFileChooser();
+        });
+        fileBlock.getChildren().addAll(fileLabel, browseBtn);
+
+        // Section 2: Recent Projects
+        VBox recentBlock = new VBox(10);
+        recentBlock.setAlignment(javafx.geometry.Pos.CENTER);
+        recentBlock.getStyleClass().add("save-block-frame");
+        Label recentLabel = new Label("Recent Projects");
+        recentLabel.getStyleClass().add("warning-label");
+
+        VBox recentList = new VBox(5);
+        recentList.setAlignment(javafx.geometry.Pos.CENTER);
+
+        javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(recentList);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent; -fx-padding: 0;");
+        scrollPane.setPrefViewportHeight(140);
+        scrollPane.setMaxHeight(140);
+        scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+
+        recentBlock.getChildren().addAll(recentLabel, scrollPane);
+
+        openMenu.getChildren().addAll(headerPane, fileBlock, recentBlock);
+        openMenu.setVisible(false);
+        openMenu.setManaged(false);
+
+        openMenu.getProperties().put("recentList", recentList);
+
+        mainCanvasView.getChildren().add(openMenu);
+    }
+
     private void showSaveOptionsMenu() {
         if (saveOptionsMenu != null) {
             saveOptionsMenu.setVisible(true);
@@ -500,6 +571,56 @@ public class MainController {
         if (saveOptionsMenu != null) {
             saveOptionsMenu.setVisible(false);
             saveOptionsMenu.setManaged(false);
+        }
+    }
+
+    private void showOpenMenu() {
+        if (openMenu != null) {
+            updateRecentProjectsList();
+            openMenu.setVisible(true);
+            openMenu.setManaged(true);
+        }
+    }
+
+    private void hideOpenMenu() {
+        if (openMenu != null) {
+            openMenu.setVisible(false);
+            openMenu.setManaged(false);
+        }
+    }
+
+    private void updateRecentProjectsList() {
+        VBox recentList = (VBox) openMenu.getProperties().get("recentList");
+        recentList.getChildren().clear();
+        File dir = new File("src/main/resources/templates");
+        if (dir.exists() && dir.isDirectory()) {
+            File[] files = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".json"));
+            if (files != null && files.length > 0) {
+                java.util.Arrays.sort(files, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
+                for (File file : files) {
+                    Button fileBtn = new Button(file.getName().replace(".json", ""));
+                    fileBtn.getStyleClass().addAll("create-grid-btn");
+                    fileBtn.setStyle("-fx-background-color: rgba(69, 69, 67, 0.6); -fx-text-fill: -fx-text-primary; -fx-border-color: rgba(130, 130, 128, 0.6); -fx-border-width: 1px; -fx-font-size: 14px; -fx-padding: 8px 15px;");
+                    fileBtn.setPrefWidth(220);
+                    fileBtn.setOnAction(e -> {
+                        hideOpenMenu();
+                        loadProjectFromFile(file);
+                    });
+
+                    fileBtn.setOnMouseEntered(ev -> fileBtn.setStyle("-fx-background-color: rgba(90, 90, 88, 0.8); -fx-text-fill: -fx-text-primary; -fx-border-color: rgba(130, 130, 128, 0.6); -fx-border-width: 1px; -fx-font-size: 14px; -fx-padding: 8px 15px;"));
+                    fileBtn.setOnMouseExited(ev -> fileBtn.setStyle("-fx-background-color: rgba(69, 69, 67, 0.6); -fx-text-fill: -fx-text-primary; -fx-border-color: rgba(130, 130, 128, 0.6); -fx-border-width: 1px; -fx-font-size: 14px; -fx-padding: 8px 15px;"));
+
+                    recentList.getChildren().add(fileBtn);
+                }
+            } else {
+                Label noFiles = new Label("No recent projects found.");
+                noFiles.getStyleClass().add("warning-label");
+                recentList.getChildren().add(noFiles);
+            }
+        } else {
+            Label noFiles = new Label("No recent projects found.");
+            noFiles.getStyleClass().add("warning-label");
+            recentList.getChildren().add(noFiles);
         }
     }
 
@@ -986,7 +1107,7 @@ public class MainController {
         }
     }
 
-    private void openProject() {
+    private void openProjectFromFileChooser() {
         javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
         fileChooser.setTitle("Open Project");
         File initialDir = new File("src/main/resources/templates");
@@ -997,51 +1118,55 @@ public class MainController {
 
         File selectedFile = fileChooser.showOpenDialog(mainApplicationLayout.getScene().getWindow());
         if (selectedFile != null) {
-            try {
-                String content = new String(Files.readAllBytes(selectedFile.toPath()));
-                Gson gson = new Gson();
-                Map<String, Object> projectData = gson.fromJson(content, Map.class);
+            loadProjectFromFile(selectedFile);
+        }
+    }
 
-                if (projectData.containsKey("gridSize")) {
-                    gridSize = Math.max(GRID_MIN, Math.min(GRID_MAX, ((Double) projectData.get("gridSize")).intValue()));
-                    if (gridSizeLabel != null) {
-                        gridSizeLabel.setText(gridSize + " x " + gridSize);
-                    }
+    private void loadProjectFromFile(File selectedFile) {
+        try {
+            String content = new String(Files.readAllBytes(selectedFile.toPath()));
+            Gson gson = new Gson();
+            Map<String, Object> projectData = gson.fromJson(content, Map.class);
+
+            if (projectData.containsKey("gridSize")) {
+                gridSize = Math.max(GRID_MIN, Math.min(GRID_MAX, ((Double) projectData.get("gridSize")).intValue()));
+                if (gridSizeLabel != null) {
+                    gridSizeLabel.setText(gridSize + " x " + gridSize);
                 }
-
-                resetStitches();
-
-                if (projectData.containsKey("stitches")) {
-                    List<Map<String, Object>> stitches = (List<Map<String, Object>>) projectData.get("stitches");
-                    for (Map<String, Object> stitch : stitches) {
-                        int r = ((Double) stitch.get("row")).intValue();
-                        int c = ((Double) stitch.get("col")).intValue();
-                        String colorStr = (String) stitch.get("color");
-                        if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && colorStr != null) {
-                            stitchColors[r][c] = parseRgba(colorStr);
-                        }
-                    }
-                }
-
-                String name = selectedFile.getName();
-                if (name.endsWith(".json")) {
-                    name = name.substring(0, name.length() - 5);
-                }
-                if (projectNameField != null) {
-                    projectNameField.setText(name);
-                }
-
-                if (createMenu != null) {
-                    createMenu.setManaged(false);
-                    createMenu.setVisible(false);
-                }
-
-                drawGrid();
-                drawStitches();
-                System.out.println("Opened project from: " + selectedFile.getAbsolutePath());
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+
+            resetStitches();
+
+            if (projectData.containsKey("stitches")) {
+                List<Map<String, Object>> stitches = (List<Map<String, Object>>) projectData.get("stitches");
+                for (Map<String, Object> stitch : stitches) {
+                    int r = ((Double) stitch.get("row")).intValue();
+                    int c = ((Double) stitch.get("col")).intValue();
+                    String colorStr = (String) stitch.get("color");
+                    if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && colorStr != null) {
+                        stitchColors[r][c] = parseRgba(colorStr);
+                    }
+                }
+            }
+
+            String name = selectedFile.getName();
+            if (name.endsWith(".json")) {
+                name = name.substring(0, name.length() - 5);
+            }
+            if (projectNameField != null) {
+                projectNameField.setText(name);
+            }
+
+            if (createMenu != null) {
+                createMenu.setManaged(false);
+                createMenu.setVisible(false);
+            }
+
+            drawGrid();
+            drawStitches();
+            System.out.println("Opened project from: " + selectedFile.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
