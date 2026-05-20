@@ -414,6 +414,7 @@ public class MainController {
         Button jpgBtn = new Button(".JPG");
         jpgBtn.getStyleClass().addAll("create-grid-btn");
         jpgBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
+        jpgBtn.disableProperty().bind(transparentBgCheckbox.selectedProperty());
         jpgBtn.setOnAction(e -> {
             hideSaveOptionsMenu();
             saveProjectAsImage("jpg", false);
