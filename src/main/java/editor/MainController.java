@@ -400,8 +400,7 @@ public class MainController {
         imageBtns.setAlignment(javafx.geometry.Pos.CENTER);
 
         javafx.scene.control.CheckBox transparentBgCheckbox = new javafx.scene.control.CheckBox("Transparent Background");
-        transparentBgCheckbox.getStyleClass().add("warning-label");
-        transparentBgCheckbox.setStyle("-fx-text-fill: -fx-text-primary; -fx-font-size: 14px;");
+        transparentBgCheckbox.getStyleClass().add("custom-checkbox");
 
         Button pngBtn = new Button(".PNG");
         pngBtn.getStyleClass().addAll("create-grid-btn");

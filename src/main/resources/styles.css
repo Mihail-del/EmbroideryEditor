@@ -552,3 +552,30 @@
 .main-canvas-view .create-menu .grid-size-controls .grid-size-btn {
     -fx-text-fill: -fx-text-primary !important;
 }
+
+/* ------------ CHECKBOX ------------ */
+.custom-checkbox {
+    -fx-text-fill: -fx-text-primary;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.custom-checkbox .box {
+    -fx-background-color: rgba(44, 44, 43, 0.5);
+    -fx-border-color: rgba(151, 149, 140, 0.6);
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+.custom-checkbox:hover .box {
+    -fx-border-color: -fx-accent-orange;
+}
+
+.custom-checkbox:selected .box {
+    -fx-background-color: -fx-accent-orange;
+    -fx-border-color: -fx-accent-orange;
+}
+
+.custom-checkbox:selected .mark {
+    -fx-background-color: #faf5eb;
+}
