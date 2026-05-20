@@ -91,6 +91,15 @@
                         <Canvas fx:id="gridCanvas" />
                         <Canvas fx:id="stitchCanvas" />
                         <VBox fx:id="createMenu" styleClass="create-menu" spacing="10" alignment="CENTER">
+                            <HBox alignment="TOP_RIGHT" style="-fx-padding: -5px -5px 0 0;">
+                                <Label fx:id="closeCreateMenuBtn" styleClass="close-btn">
+                                    <graphic>
+                                        <ImageView fitWidth="14" fitHeight="14" preserveRatio="true">
+                                            <image><Image url="@/icons/close.png"/></image>
+                                        </ImageView>
+                                    </graphic>
+                                </Label>
+                            </HBox>
                             <TextField fx:id="projectNameField" promptText="Project name" styleClass="create-name-field" />
                             <VBox styleClass="grid-size-controls" spacing="10">
                                 <Label styleClass="section-title" text="Grid Size" />

@@ -23,6 +23,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
@@ -103,6 +104,9 @@ public class MainController {
 
     @FXML
     private Button createGridBtn;
+
+    @FXML
+    private Label closeCreateMenuBtn;
 
     @FXML
     private VBox createMenu;
@@ -224,6 +228,15 @@ public class MainController {
             });
         }
 
+        if (closeCreateMenuBtn != null) {
+            closeCreateMenuBtn.setOnMouseClicked(e -> {
+                if (createMenu != null) {
+                    createMenu.setManaged(false);
+                    createMenu.setVisible(false);
+                }
+            });
+        }
+
         if (createGridBtn != null && projectNameField != null) {
             projectNameField.setTextFormatter(new TextFormatter<String>(change -> {
                 String next = change.getControlNewText();
@@ -334,6 +347,21 @@ public class MainController {
         saveWarningMenu.getStyleClass().add("warning-menu");
         saveWarningMenu.setAlignment(javafx.geometry.Pos.CENTER);
 
+        HBox closeBox = new HBox();
+        closeBox.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
+        closeBox.setStyle("-fx-padding: -10px -10px 0 0;");
+        Label closeBtn = new Label();
+        ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
+        closeIcon.setFitWidth(14);
+        closeIcon.setFitHeight(14);
+        closeBtn.setGraphic(closeIcon);
+        closeBtn.getStyleClass().add("close-btn");
+        closeBtn.setOnMouseClicked(e -> {
+            hideWarningMenu();
+            pendingAction = null;
+        });
+        closeBox.getChildren().add(closeBtn);
+
         Label warningLabel = new Label("You have unsaved changes.\nDo you want to save before proceeding?");
         warningLabel.setWrapText(true);
         warningLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
@@ -364,7 +392,7 @@ public class MainController {
         HBox btns = new HBox(15, saveBtn, dontSaveBtn, cancelBtn);
         btns.setAlignment(javafx.geometry.Pos.CENTER);
 
-        saveWarningMenu.getChildren().addAll(warningLabel, btns);
+        saveWarningMenu.getChildren().addAll(closeBox, warningLabel, btns);
         saveWarningMenu.setVisible(false);
         saveWarningMenu.setManaged(false);
 
@@ -376,6 +404,18 @@ public class MainController {
         saveOptionsMenu = new VBox(20);
         saveOptionsMenu.getStyleClass().add("save-options-menu");
         saveOptionsMenu.setAlignment(javafx.geometry.Pos.CENTER);
+
+        HBox closeBox = new HBox();
+        closeBox.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
+        closeBox.setStyle("-fx-padding: -10px -10px 0 0;");
+        Label closeBtn = new Label();
+        ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
+        closeIcon.setFitWidth(14);
+        closeIcon.setFitHeight(14);
+        closeBtn.setGraphic(closeIcon);
+        closeBtn.getStyleClass().add("close-btn");
+        closeBtn.setOnMouseClicked(e -> hideSaveOptionsMenu());
+        closeBox.getChildren().add(closeBtn);
 
         Label titleLabel = new Label("Save Options");
         titleLabel.getStyleClass().add("warning-label");
@@ -439,7 +479,7 @@ public class MainController {
         cancelBtn.setPrefWidth(120);
         cancelBtn.setOnAction(e -> hideSaveOptionsMenu());
 
-        saveOptionsMenu.getChildren().addAll(titleLabel, templateBlock, imageBlock, cancelBtn);
+        saveOptionsMenu.getChildren().addAll(closeBox, titleLabel, templateBlock, imageBlock, cancelBtn);
         saveOptionsMenu.setVisible(false);
         saveOptionsMenu.setManaged(false);
 
