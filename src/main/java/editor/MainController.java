@@ -161,7 +161,6 @@ public class MainController {
     private boolean isHorizontalSymmetryActive = false;
 
     private boolean isEraserActive = false;
-    private VBox saveWarningMenu;
     private VBox saveOptionsMenu;
     private VBox openMenu;
     private Runnable pendingAction;
@@ -328,7 +327,6 @@ public class MainController {
             setActiveThreadCircle(colorCircle1);
         }
 
-        initSaveWarningMenu();
         initSaveOptionsMenu();
         initOpenMenu();
 
@@ -341,64 +339,6 @@ public class MainController {
         );
         autoSaveTimeline.setCycleCount(Timeline.INDEFINITE);
         autoSaveTimeline.play();
-    }
-
-    private void initSaveWarningMenu() {
-        if (mainCanvasView == null) return;
-        saveWarningMenu = new VBox(20);
-        saveWarningMenu.getStyleClass().add("warning-menu");
-        saveWarningMenu.setAlignment(javafx.geometry.Pos.CENTER);
-
-        HBox closeBox = new HBox();
-        closeBox.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
-        closeBox.setStyle("-fx-padding: -10px -10px 0 0;");
-        Label closeBtn = new Label();
-        ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
-        closeIcon.setFitWidth(14);
-        closeIcon.setFitHeight(14);
-        closeBtn.setGraphic(closeIcon);
-        closeBtn.getStyleClass().add("close-btn");
-        closeBtn.setOnMouseClicked(e -> {
-            hideWarningMenu();
-            pendingAction = null;
-        });
-        closeBox.getChildren().add(closeBtn);
-
-        Label warningLabel = new Label("You have unsaved changes.\nDo you want to save before proceeding?");
-        warningLabel.setWrapText(true);
-        warningLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
-        warningLabel.getStyleClass().add("warning-label");
-
-        Button saveBtn = new Button("Save");
-        saveBtn.getStyleClass().addAll("create-grid-btn", "warning-save-btn");
-        saveBtn.setOnAction(e -> {
-            saveProject();
-            hideWarningMenu();
-            if (pendingAction != null) pendingAction.run();
-        });
-
-        Button dontSaveBtn = new Button("Don't Save");
-        dontSaveBtn.getStyleClass().addAll("create-grid-btn", "warning-dont-save-btn");
-        dontSaveBtn.setOnAction(e -> {
-            hideWarningMenu();
-            if (pendingAction != null) pendingAction.run();
-        });
-
-        Button cancelBtn = new Button("Cancel");
-        cancelBtn.getStyleClass().addAll("create-grid-btn", "warning-cancel-btn");
-        cancelBtn.setOnAction(e -> {
-            hideWarningMenu();
-            pendingAction = null;
-        });
-
-        HBox btns = new HBox(15, saveBtn, dontSaveBtn, cancelBtn);
-        btns.setAlignment(javafx.geometry.Pos.CENTER);
-
-        saveWarningMenu.getChildren().addAll(closeBox, warningLabel, btns);
-        saveWarningMenu.setVisible(false);
-        saveWarningMenu.setManaged(false);
-
-        mainCanvasView.getChildren().add(saveWarningMenu);
     }
 
     private void initSaveOptionsMenu() {
@@ -629,13 +569,6 @@ public class MainController {
         }
     }
 
-    private void hideWarningMenu() {
-        if (saveWarningMenu != null) {
-            saveWarningMenu.setVisible(false);
-            saveWarningMenu.setManaged(false);
-        }
-    }
-
     private void hideAllMenus() {
         if (createMenu != null) {
             createMenu.setVisible(false);
@@ -648,10 +581,6 @@ public class MainController {
         if (openMenu != null) {
             openMenu.setVisible(false);
             openMenu.setManaged(false);
-        }
-        if (saveWarningMenu != null) {
-            saveWarningMenu.setVisible(false);
-            saveWarningMenu.setManaged(false);
         }
         if (threadColorPicker != null) {
             threadColorPicker.hide();
@@ -673,16 +602,10 @@ public class MainController {
             action.run();
             return;
         }
-        if (isCanvasClear()) {
-            action.run();
-        } else {
-            hideAllMenus();
-            pendingAction = action;
-            if (saveWarningMenu != null) {
-                saveWarningMenu.setVisible(true);
-                saveWarningMenu.setManaged(true);
-            }
+        if (!isCanvasClear()) {
+            saveProject();
         }
+        action.run();
     }
 
     private void setupNavHover(Label label, boolean isActive) {
