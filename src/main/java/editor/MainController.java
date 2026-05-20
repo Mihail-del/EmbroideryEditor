@@ -405,9 +405,12 @@ public class MainController {
         saveOptionsMenu.getStyleClass().add("save-options-menu");
         saveOptionsMenu.setAlignment(javafx.geometry.Pos.CENTER);
 
-        HBox closeBox = new HBox();
-        closeBox.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
-        closeBox.setStyle("-fx-padding: -10px -10px 0 0;");
+        StackPane headerPane = new StackPane();
+
+        Label titleLabel = new Label("Save Options");
+        titleLabel.getStyleClass().add("warning-label");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
+
         Label closeBtn = new Label();
         ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
         closeIcon.setFitWidth(14);
@@ -415,11 +418,11 @@ public class MainController {
         closeBtn.setGraphic(closeIcon);
         closeBtn.getStyleClass().add("close-btn");
         closeBtn.setOnMouseClicked(e -> hideSaveOptionsMenu());
-        closeBox.getChildren().add(closeBtn);
 
-        Label titleLabel = new Label("Save Options");
-        titleLabel.getStyleClass().add("warning-label");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
+        StackPane.setAlignment(closeBtn, javafx.geometry.Pos.TOP_RIGHT);
+        StackPane.setMargin(closeBtn, new javafx.geometry.Insets(-10, -10, 0, 0));
+
+        headerPane.getChildren().addAll(titleLabel, closeBtn);
 
         // Template Block
         VBox templateBlock = new VBox(10);
@@ -479,7 +482,7 @@ public class MainController {
         cancelBtn.setPrefWidth(120);
         cancelBtn.setOnAction(e -> hideSaveOptionsMenu());
 
-        saveOptionsMenu.getChildren().addAll(closeBox, titleLabel, templateBlock, imageBlock, cancelBtn);
+        saveOptionsMenu.getChildren().addAll(headerPane, templateBlock, imageBlock, cancelBtn);
         saveOptionsMenu.setVisible(false);
         saveOptionsMenu.setManaged(false);
 

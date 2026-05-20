@@ -491,5 +491,5 @@
 .main-canvas-view .create-menu .grid-size-controls .grid-size-text,
 .main-canvas-view .create-menu .grid-size-controls .section-title,
 .main-canvas-view .create-menu .grid-size-controls .grid-size-btn {
-    -fx-text-fill: -fx-text-primary;
+    -fx-text-fill: -fx-text-primary !important;
 }
