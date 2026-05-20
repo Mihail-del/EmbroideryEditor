@@ -1135,9 +1135,20 @@ public class MainController {
 
         File file = fileChooser.showSaveDialog(mainApplicationLayout.getScene().getWindow());
         if (file != null) {
+            boolean prevVertical = isVerticalSymmetryActive;
+            boolean prevHorizontal = isHorizontalSymmetryActive;
+            isVerticalSymmetryActive = false;
+            isHorizontalSymmetryActive = false;
+            drawGrid();
+
             SnapshotParameters params = new SnapshotParameters();
             params.setFill(Color.TRANSPARENT);
             WritableImage snapshot = mainCanvasView.snapshot(params, null);
+
+            isVerticalSymmetryActive = prevVertical;
+            isHorizontalSymmetryActive = prevHorizontal;
+            drawGrid();
+
             BufferedImage bufferedImage = SwingFXUtils.fromFXImage(snapshot, null);
 
             // For formats like JPG that don't support alpha, we might need a background.
