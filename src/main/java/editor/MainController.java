@@ -985,7 +985,7 @@ public class MainController {
 
         String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
                              ? projectNameField.getText().trim()
-                             : "project";
+                             : "untitled";
         fileChooser.setInitialFileName(projectName + ".json");
 
         File file = fileChooser.showSaveDialog(mainApplicationLayout.getScene().getWindow());
