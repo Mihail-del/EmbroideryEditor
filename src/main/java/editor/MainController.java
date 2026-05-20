@@ -23,11 +23,26 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Locale;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.SnapshotParameters;
+import javafx.stage.FileChooser;
 
 public class MainController {
 
@@ -91,6 +106,9 @@ public class MainController {
     private Button createGridBtn;
 
     @FXML
+    private Label closeCreateMenuBtn;
+
+    @FXML
     private VBox createMenu;
 
     @FXML
@@ -143,6 +161,9 @@ public class MainController {
     private boolean isHorizontalSymmetryActive = false;
 
     private boolean isEraserActive = false;
+    private VBox saveWarningMenu;
+    private VBox saveOptionsMenu;
+    private Runnable pendingAction;
 
     private enum NavState {
         IDLE,
@@ -207,6 +228,15 @@ public class MainController {
             });
         }
 
+        if (closeCreateMenuBtn != null) {
+            closeCreateMenuBtn.setOnMouseClicked(e -> {
+                if (createMenu != null) {
+                    createMenu.setManaged(false);
+                    createMenu.setVisible(false);
+                }
+            });
+        }
+
         if (createGridBtn != null && projectNameField != null) {
             projectNameField.setTextFormatter(new TextFormatter<String>(change -> {
                 String next = change.getControlNewText();
@@ -256,10 +286,16 @@ public class MainController {
             setupNavHover(activeNavLabel, true);
         if (createNavLabel != null) {
             setupNavHover(createNavLabel, false);
-            createNavLabel.setOnMouseClicked(e -> showCreateMenu());
+            createNavLabel.setOnMouseClicked(e -> runWithSaveCheck(this::showCreateMenu));
         }
         setupNavHover(saveNavLabel, false);
+        if (saveNavLabel != null) {
+            saveNavLabel.setOnMouseClicked(e -> showSaveOptionsMenu());
+        }
         setupNavHover(openNavLabel, false);
+        if (openNavLabel != null) {
+            openNavLabel.setOnMouseClicked(e -> runWithSaveCheck(this::openProject));
+        }
         setupNavHover(infoNavLabel, false);
 
         setupSymmetryButtonAnimations(horizontalSymmetryBox);
@@ -289,6 +325,214 @@ public class MainController {
 
         if (colorCircle1 != null) {
             setActiveThreadCircle(colorCircle1);
+        }
+
+        initSaveWarningMenu();
+        initSaveOptionsMenu();
+
+        Timeline autoSaveTimeline = new Timeline(
+            new KeyFrame(Duration.seconds(10), e -> {
+                if (!isCanvasClear()) {
+                    saveProject();
+                }
+            })
+        );
+        autoSaveTimeline.setCycleCount(Timeline.INDEFINITE);
+        autoSaveTimeline.play();
+    }
+
+    private void initSaveWarningMenu() {
+        if (mainCanvasView == null) return;
+        saveWarningMenu = new VBox(20);
+        saveWarningMenu.getStyleClass().add("warning-menu");
+        saveWarningMenu.setAlignment(javafx.geometry.Pos.CENTER);
+
+        HBox closeBox = new HBox();
+        closeBox.setAlignment(javafx.geometry.Pos.TOP_RIGHT);
+        closeBox.setStyle("-fx-padding: -10px -10px 0 0;");
+        Label closeBtn = new Label();
+        ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
+        closeIcon.setFitWidth(14);
+        closeIcon.setFitHeight(14);
+        closeBtn.setGraphic(closeIcon);
+        closeBtn.getStyleClass().add("close-btn");
+        closeBtn.setOnMouseClicked(e -> {
+            hideWarningMenu();
+            pendingAction = null;
+        });
+        closeBox.getChildren().add(closeBtn);
+
+        Label warningLabel = new Label("You have unsaved changes.\nDo you want to save before proceeding?");
+        warningLabel.setWrapText(true);
+        warningLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+        warningLabel.getStyleClass().add("warning-label");
+
+        Button saveBtn = new Button("Save");
+        saveBtn.getStyleClass().addAll("create-grid-btn", "warning-save-btn");
+        saveBtn.setOnAction(e -> {
+            saveProject();
+            hideWarningMenu();
+            if (pendingAction != null) pendingAction.run();
+        });
+
+        Button dontSaveBtn = new Button("Don't Save");
+        dontSaveBtn.getStyleClass().addAll("create-grid-btn", "warning-dont-save-btn");
+        dontSaveBtn.setOnAction(e -> {
+            hideWarningMenu();
+            if (pendingAction != null) pendingAction.run();
+        });
+
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.getStyleClass().addAll("create-grid-btn", "warning-cancel-btn");
+        cancelBtn.setOnAction(e -> {
+            hideWarningMenu();
+            pendingAction = null;
+        });
+
+        HBox btns = new HBox(15, saveBtn, dontSaveBtn, cancelBtn);
+        btns.setAlignment(javafx.geometry.Pos.CENTER);
+
+        saveWarningMenu.getChildren().addAll(closeBox, warningLabel, btns);
+        saveWarningMenu.setVisible(false);
+        saveWarningMenu.setManaged(false);
+
+        mainCanvasView.getChildren().add(saveWarningMenu);
+    }
+
+    private void initSaveOptionsMenu() {
+        if (mainCanvasView == null) return;
+        saveOptionsMenu = new VBox(20);
+        saveOptionsMenu.getStyleClass().add("save-options-menu");
+        saveOptionsMenu.setAlignment(javafx.geometry.Pos.CENTER);
+
+        StackPane headerPane = new StackPane();
+
+        Label titleLabel = new Label("Save Options");
+        titleLabel.getStyleClass().add("warning-label");
+        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
+
+        Label closeBtn = new Label();
+        ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
+        closeIcon.setFitWidth(14);
+        closeIcon.setFitHeight(14);
+        closeBtn.setGraphic(closeIcon);
+        closeBtn.getStyleClass().add("close-btn");
+        closeBtn.setOnMouseClicked(e -> hideSaveOptionsMenu());
+
+        StackPane.setAlignment(closeBtn, javafx.geometry.Pos.TOP_RIGHT);
+        StackPane.setMargin(closeBtn, new javafx.geometry.Insets(-10, -10, 0, 0));
+
+        headerPane.getChildren().addAll(titleLabel, closeBtn);
+
+        // Template Block
+        VBox templateBlock = new VBox(10);
+        templateBlock.setAlignment(javafx.geometry.Pos.CENTER);
+        templateBlock.getStyleClass().add("save-block-frame");
+        Label templateLabel = new Label("Save as Template");
+        templateLabel.getStyleClass().add("warning-label");
+
+        Button jsonBtn = new Button(".JSON");
+        jsonBtn.getStyleClass().addAll("create-grid-btn");
+        jsonBtn.setPrefWidth(240);
+        jsonBtn.setOnAction(e -> {
+            hideSaveOptionsMenu();
+            saveProjectAsJson();
+        });
+        templateBlock.getChildren().addAll(templateLabel, jsonBtn);
+
+        // Image Block
+        VBox imageBlock = new VBox(10);
+        imageBlock.setAlignment(javafx.geometry.Pos.CENTER);
+        imageBlock.getStyleClass().add("save-block-frame");
+        Label imageLabel = new Label("Save as Image");
+        imageLabel.getStyleClass().add("warning-label");
+
+        HBox imageBtns = new HBox(15);
+        imageBtns.setAlignment(javafx.geometry.Pos.CENTER);
+
+        Button pngBtn = new Button(".PNG");
+        pngBtn.getStyleClass().addAll("create-grid-btn");
+        pngBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
+        pngBtn.setOnAction(e -> {
+            hideSaveOptionsMenu();
+            saveProjectAsImage("png");
+        });
+
+        Button jpgBtn = new Button(".JPG");
+        jpgBtn.getStyleClass().addAll("create-grid-btn");
+        jpgBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
+        jpgBtn.setOnAction(e -> {
+            hideSaveOptionsMenu();
+            saveProjectAsImage("jpg");
+        });
+
+        Button gifBtn = new Button(".GIF");
+        gifBtn.getStyleClass().addAll("create-grid-btn");
+        gifBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
+        gifBtn.setOnAction(e -> {
+            hideSaveOptionsMenu();
+            saveProjectAsImage("gif");
+        });
+
+        imageBtns.getChildren().addAll(pngBtn, jpgBtn, gifBtn);
+        imageBlock.getChildren().addAll(imageLabel, imageBtns);
+
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.getStyleClass().addAll("create-grid-btn", "warning-cancel-btn");
+        cancelBtn.setPrefWidth(120);
+        cancelBtn.setOnAction(e -> hideSaveOptionsMenu());
+
+        saveOptionsMenu.getChildren().addAll(headerPane, templateBlock, imageBlock, cancelBtn);
+        saveOptionsMenu.setVisible(false);
+        saveOptionsMenu.setManaged(false);
+
+        mainCanvasView.getChildren().add(saveOptionsMenu);
+    }
+
+    private void showSaveOptionsMenu() {
+        if (saveOptionsMenu != null) {
+            saveOptionsMenu.setVisible(true);
+            saveOptionsMenu.setManaged(true);
+        }
+    }
+
+    private void hideSaveOptionsMenu() {
+        if (saveOptionsMenu != null) {
+            saveOptionsMenu.setVisible(false);
+            saveOptionsMenu.setManaged(false);
+        }
+    }
+
+    private void hideWarningMenu() {
+        if (saveWarningMenu != null) {
+            saveWarningMenu.setVisible(false);
+            saveWarningMenu.setManaged(false);
+        }
+    }
+
+    private boolean isCanvasClear() {
+        if (stitchColors == null) return true;
+        for (int r = 0; r < gridSize; r++) {
+            for (int c = 0; c < gridSize; c++) {
+                if (stitchColors[r][c] != null) return false;
+            }
+        }
+        return true;
+    }
+
+    private void runWithSaveCheck(Runnable action) {
+        if (createMenu != null && createMenu.isVisible()) {
+            action.run();
+            return;
+        }
+        if (isCanvasClear()) {
+            action.run();
+        } else {
+            pendingAction = action;
+            if (saveWarningMenu != null) {
+                saveWarningMenu.setVisible(true);
+                saveWarningMenu.setManaged(true);
+            }
         }
     }
 
@@ -342,7 +586,7 @@ public class MainController {
     }
 
     private String toRgba(Color color) {
-        return String.format("rgba(%d, %d, %d, %.3f)",
+        return String.format(Locale.US, "rgba(%d, %d, %d, %.3f)",
                 (int) Math.round(color.getRed() * 255),
                 (int) Math.round(color.getGreen() * 255),
                 (int) Math.round(color.getBlue() * 255),
@@ -617,6 +861,212 @@ public class MainController {
 
     private void clearCanvas() {
         resetStitches();
+    }
+
+    private void saveProject() {
+        String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
+                             ? projectNameField.getText().trim()
+                             : "project";
+
+        Map<String, Object> projectData = new HashMap<>();
+        projectData.put("gridSize", gridSize);
+
+        List<Map<String, Object>> stitches = new ArrayList<>();
+        if (stitchColors != null) {
+            for (int r = 0; r < gridSize; r++) {
+                for (int c = 0; c < gridSize; c++) {
+                    if (stitchColors[r][c] != null) {
+                        Map<String, Object> stitch = new HashMap<>();
+                        stitch.put("row", r);
+                        stitch.put("col", c);
+                        stitch.put("color", toRgba(stitchColors[r][c]));
+                        stitches.add(stitch);
+                    }
+                }
+            }
+        }
+        projectData.put("stitches", stitches);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(projectData);
+
+        try {
+            File dir = new File("src/main/resources/templates");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            File file = new File(dir, projectName + ".json");
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(json);
+            }
+            System.out.println("Auto-saved project to: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveProjectAsJson() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Project JSON");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
+
+        String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
+                             ? projectNameField.getText().trim()
+                             : "project";
+        fileChooser.setInitialFileName(projectName + ".json");
+
+        File file = fileChooser.showSaveDialog(mainApplicationLayout.getScene().getWindow());
+        if (file != null) {
+            Map<String, Object> projectData = new HashMap<>();
+            projectData.put("gridSize", gridSize);
+
+            List<Map<String, Object>> stitches = new ArrayList<>();
+            if (stitchColors != null) {
+                for (int r = 0; r < gridSize; r++) {
+                    for (int c = 0; c < gridSize; c++) {
+                        if (stitchColors[r][c] != null) {
+                            Map<String, Object> stitch = new HashMap<>();
+                            stitch.put("row", r);
+                            stitch.put("col", c);
+                            stitch.put("color", toRgba(stitchColors[r][c]));
+                            stitches.add(stitch);
+                        }
+                    }
+                }
+            }
+            projectData.put("stitches", stitches);
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            try (FileWriter writer = new FileWriter(file)) {
+                writer.write(gson.toJson(projectData));
+                System.out.println("Manually saved project JSON to: " + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void saveProjectAsImage(String format) {
+        if (mainCanvasView == null) return;
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Image as " + format.toUpperCase());
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(format.toUpperCase() + " Image", "*." + format));
+
+        String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
+                             ? projectNameField.getText().trim()
+                             : "project";
+        fileChooser.setInitialFileName(projectName + "." + format);
+
+        File file = fileChooser.showSaveDialog(mainApplicationLayout.getScene().getWindow());
+        if (file != null) {
+            SnapshotParameters params = new SnapshotParameters();
+            params.setFill(Color.TRANSPARENT);
+            WritableImage snapshot = mainCanvasView.snapshot(params, null);
+            BufferedImage bufferedImage = SwingFXUtils.fromFXImage(snapshot, null);
+
+            // For formats like JPG that don't support alpha, we might need a background.
+            if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
+                BufferedImage jpgImage = new BufferedImage(
+                    bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+                java.awt.Graphics2D g2d = jpgImage.createGraphics();
+                g2d.setColor(java.awt.Color.WHITE);
+                g2d.fillRect(0, 0, jpgImage.getWidth(), jpgImage.getHeight());
+                g2d.drawImage(bufferedImage, 0, 0, null);
+                g2d.dispose();
+                bufferedImage = jpgImage;
+            }
+
+            try {
+                ImageIO.write(bufferedImage, format, file);
+                System.out.println("Exported Image to: " + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void openProject() {
+        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+        fileChooser.setTitle("Open Project");
+        File initialDir = new File("src/main/resources/templates");
+        if (initialDir.exists()) {
+            fileChooser.setInitialDirectory(initialDir);
+        }
+        fileChooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("JSON Files", "*.json"));
+
+        File selectedFile = fileChooser.showOpenDialog(mainApplicationLayout.getScene().getWindow());
+        if (selectedFile != null) {
+            try {
+                String content = new String(Files.readAllBytes(selectedFile.toPath()));
+                Gson gson = new Gson();
+                Map<String, Object> projectData = gson.fromJson(content, Map.class);
+
+                if (projectData.containsKey("gridSize")) {
+                    gridSize = Math.max(GRID_MIN, Math.min(GRID_MAX, ((Double) projectData.get("gridSize")).intValue()));
+                    if (gridSizeLabel != null) {
+                        gridSizeLabel.setText(gridSize + " x " + gridSize);
+                    }
+                }
+
+                resetStitches();
+
+                if (projectData.containsKey("stitches")) {
+                    List<Map<String, Object>> stitches = (List<Map<String, Object>>) projectData.get("stitches");
+                    for (Map<String, Object> stitch : stitches) {
+                        int r = ((Double) stitch.get("row")).intValue();
+                        int c = ((Double) stitch.get("col")).intValue();
+                        String colorStr = (String) stitch.get("color");
+                        if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && colorStr != null) {
+                            stitchColors[r][c] = parseRgba(colorStr);
+                        }
+                    }
+                }
+
+                String name = selectedFile.getName();
+                if (name.endsWith(".json")) {
+                    name = name.substring(0, name.length() - 5);
+                }
+                if (projectNameField != null) {
+                    projectNameField.setText(name);
+                }
+
+                if (createMenu != null) {
+                    createMenu.setManaged(false);
+                    createMenu.setVisible(false);
+                }
+
+                drawGrid();
+                drawStitches();
+                System.out.println("Opened project from: " + selectedFile.getAbsolutePath());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private Color parseRgba(String rgba) {
+        if (rgba == null || rgba.isEmpty()) return Color.TRANSPARENT;
+        if (rgba.startsWith("rgba(")) {
+            String inner = rgba.substring(5, rgba.length() - 1);
+            String[] parts = inner.split(",");
+            if (parts.length >= 4) {
+                try {
+                    int r = Integer.parseInt(parts[0].trim());
+                    int g = Integer.parseInt(parts[1].trim());
+                    int b = Integer.parseInt(parts[2].trim());
+                    double a = Double.parseDouble(parts[3].trim());
+                    return Color.rgb(r, g, b, a);
+                } catch (NumberFormatException e) {
+                    // Fallback to web
+                }
+            }
+        }
+        try {
+            return Color.web(rgba);
+        } catch (Exception e) {
+            return Color.TRANSPARENT;
+        }
     }
 
     private void showCreateMenu() {

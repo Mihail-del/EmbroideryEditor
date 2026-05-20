@@ -91,6 +91,19 @@
                         <Canvas fx:id="gridCanvas" />
                         <Canvas fx:id="stitchCanvas" />
                         <VBox fx:id="createMenu" styleClass="create-menu" spacing="10" alignment="CENTER">
+                            <StackPane>
+                                <Label text="Create New" styleClass="section-title" style="-fx-font-size: 16px; -fx-padding: 0; -fx-text-fill: -fx-text-primary"/>
+                                <Label fx:id="closeCreateMenuBtn" styleClass="close-btn" StackPane.alignment="TOP_RIGHT">
+                                    <StackPane.margin>
+                                        <javafx.geometry.Insets top="-5" right="-5" bottom="0" left="0"/>
+                                    </StackPane.margin>
+                                    <graphic>
+                                        <ImageView fitWidth="14" fitHeight="14" preserveRatio="true">
+                                            <image><Image url="@/icons/close.png"/></image>
+                                        </ImageView>
+                                    </graphic>
+                                </Label>
+                            </StackPane>
                             <TextField fx:id="projectNameField" promptText="Project name" styleClass="create-name-field" />
                             <VBox styleClass="grid-size-controls" spacing="10">
                                 <Label styleClass="section-title" text="Grid Size" />

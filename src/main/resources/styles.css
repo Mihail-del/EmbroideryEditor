@@ -326,6 +326,101 @@
     -fx-effect: dropshadow(gaussian, rgba(216, 155, 135, 0.5), 12, 0.3, 0, 0) !important;
 }
 
+.close-btn {
+    -fx-cursor: hand;
+    -fx-background-radius: 6px;
+    -fx-padding: 4px;
+}
+
+.close-btn:hover {
+    -fx-background-color: rgba(249, 249, 247, 0.1);
+}
+
+/* ------------ WARNING MENU ------------ */
+
+.warning-menu {
+    -fx-background-color: rgba(31, 31, 30, 0.7);
+    -fx-padding: 25px;
+    -fx-background-radius: 16px;
+    -fx-max-width: 350px;
+    -fx-max-height: 90px;
+    -fx-pref-width: 420px;
+    -fx-min-height: 180px;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 22, 0.25, 0, 6);
+}
+
+.warning-label {
+    -fx-text-fill: -fx-text-primary !important;
+    -fx-font-size: 16px;
+    -fx-text-alignment: center;
+}
+
+.warning-save-btn {
+    -fx-pref-width: 100px;
+    -fx-min-width: 100px;
+    -fx-padding: 10px 15px;
+    -fx-background-color: rgba(217, 119, 87, 0.8);
+}
+
+.warning-dont-save-btn {
+    -fx-pref-width: 120px;
+    -fx-min-width: 120px;
+    -fx-padding: 10px 15px;
+    -fx-background-color: rgba(69, 69, 67, 0.6);
+    -fx-text-fill: -fx-text-primary;
+    -fx-border-color: rgba(130, 130, 128, 0.6);
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(69, 69, 67, 0.5), 15, 0.25, 0, 4);
+}
+
+.warning-dont-save-btn:hover {
+    -fx-background-color: rgba(90, 90, 88, 0.8);
+}
+
+.warning-cancel-btn {
+    -fx-pref-width: 100px;
+    -fx-min-width: 100px;
+    -fx-padding: 10px 15px;
+    -fx-background-color: rgba(69, 69, 67, 0.6);
+    -fx-text-fill: -fx-text-primary;
+    -fx-border-color: rgba(130, 130, 128, 0.6);
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(69, 69, 67, 0.5), 15, 0.25, 0, 4);
+}
+
+.warning-cancel-btn:hover {
+    -fx-background-color: rgba(90, 90, 88, 0.8);
+}
+
+/* ------------ SAVE MENU ------------ */
+
+.save-options-menu {
+    -fx-background-color: rgba(31, 31, 30, 0.7);
+    -fx-padding: 25px;
+    -fx-background-radius: 16px;
+    -fx-max-width: 420px;
+    -fx-max-height: 400px;
+    -fx-pref-width: 380px;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 22, 0.25, 0, 6);
+}
+
+.save-block-frame {
+    -fx-background-color: rgba(44, 44, 43, 0.5);
+    -fx-padding: 15px;
+    -fx-spacing: 10px;
+    -fx-border-color: -fx-bg-tertiary;
+    -fx-border-width: 1px;
+    -fx-border-radius: 15px;
+    -fx-background-radius: 15px;
+    -fx-effect: dropshadow(gaussian, -fx-shadow-strong, 15, 0.2, 0, 0);
+    -fx-alignment: center;
+}
 
 /* ------------ LOADING SCREEN ------------ */
 
@@ -396,5 +491,5 @@
 .main-canvas-view .create-menu .grid-size-controls .grid-size-text,
 .main-canvas-view .create-menu .grid-size-controls .section-title,
 .main-canvas-view .create-menu .grid-size-controls .grid-size-btn {
-    -fx-text-fill: -fx-text-primary;
+    -fx-text-fill: -fx-text-primary !important;
 }
