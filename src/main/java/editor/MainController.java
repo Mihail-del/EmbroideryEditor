@@ -564,6 +564,7 @@ public class MainController {
     }
 
     private void showSaveOptionsMenu() {
+        hideAllMenus();
         if (saveOptionsMenu != null) {
             saveOptionsMenu.setVisible(true);
             saveOptionsMenu.setManaged(true);
@@ -578,6 +579,7 @@ public class MainController {
     }
 
     private void showOpenMenu() {
+        hideAllMenus();
         if (openMenu != null) {
             updateRecentProjectsList();
             openMenu.setVisible(true);
@@ -634,6 +636,28 @@ public class MainController {
         }
     }
 
+    private void hideAllMenus() {
+        if (createMenu != null) {
+            createMenu.setVisible(false);
+            createMenu.setManaged(false);
+        }
+        if (saveOptionsMenu != null) {
+            saveOptionsMenu.setVisible(false);
+            saveOptionsMenu.setManaged(false);
+        }
+        if (openMenu != null) {
+            openMenu.setVisible(false);
+            openMenu.setManaged(false);
+        }
+        if (saveWarningMenu != null) {
+            saveWarningMenu.setVisible(false);
+            saveWarningMenu.setManaged(false);
+        }
+        if (threadColorPicker != null) {
+            threadColorPicker.hide();
+        }
+    }
+
     private boolean isCanvasClear() {
         if (stitchColors == null) return true;
         for (int r = 0; r < gridSize; r++) {
@@ -652,6 +676,7 @@ public class MainController {
         if (isCanvasClear()) {
             action.run();
         } else {
+            hideAllMenus();
             pendingAction = action;
             if (saveWarningMenu != null) {
                 saveWarningMenu.setVisible(true);
@@ -775,6 +800,7 @@ public class MainController {
         if (threadColorPicker == null || pane == null) {
             return;
         }
+        hideAllMenus();
         activeColorCircle = pane;
         Color current = getCircleColor(pane);
         if (current == null || current.equals(Color.TRANSPARENT)) {
@@ -1198,6 +1224,7 @@ public class MainController {
     }
 
     private void showCreateMenu() {
+        hideAllMenus();
         clearCanvas();
         if (createMenu != null) {
             createMenu.setManaged(true);
