@@ -645,16 +645,42 @@ public class MainController {
             if (files != null && files.length > 0) {
                 java.util.Arrays.sort(files, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
                 for (File file : files) {
-                    Button fileBtn = new Button(file.getName().replace(".json", ""));
-                    fileBtn.getStyleClass().add("recent-project-btn");
-                    fileBtn.setPrefWidth(140);
-                    fileBtn.setOnAction(e -> {
+                    HBox fileBox = new HBox(5);
+                    fileBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                    fileBox.getStyleClass().add("recent-project-btn");
+                    fileBox.setPrefWidth(140);
+                    fileBox.setMaxWidth(140);
+
+                    Label nameLabel = new Label(file.getName().replace(".json", ""));
+                    nameLabel.setStyle("-fx-text-fill: -fx-text-primary; -fx-font-size: 14px;");
+
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+                    ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
+                    closeIcon.setFitWidth(10);
+                    closeIcon.setFitHeight(10);
+
+                    Label deleteBtn = new Label();
+                    deleteBtn.setGraphic(closeIcon);
+                    deleteBtn.getStyleClass().add("close-btn");
+                    deleteBtn.setOnMouseClicked(e -> {
+                        e.consume(); // Prevent HBox from being clicked
+                        try {
+                            java.nio.file.Files.deleteIfExists(file.toPath());
+                            updateRecentProjectsList(); // Refresh the list
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    });
+
+                    fileBox.getChildren().addAll(nameLabel, spacer, deleteBtn);
+                    fileBox.setOnMouseClicked(e -> {
                         hideOpenMenu();
                         loadProjectFromFile(file);
                     });
 
-
-                    recentList.getChildren().add(fileBtn);
+                    recentList.getChildren().add(fileBox);
                 }
             } else {
                 Label noFiles = new Label("No recent projects found.");
