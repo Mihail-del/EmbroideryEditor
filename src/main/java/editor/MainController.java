@@ -399,12 +399,16 @@ public class MainController {
         HBox imageBtns = new HBox(15);
         imageBtns.setAlignment(javafx.geometry.Pos.CENTER);
 
+        javafx.scene.control.CheckBox transparentBgCheckbox = new javafx.scene.control.CheckBox("Transparent Background");
+        transparentBgCheckbox.getStyleClass().add("warning-label");
+        transparentBgCheckbox.setStyle("-fx-text-fill: -fx-text-primary; -fx-font-size: 14px;");
+
         Button pngBtn = new Button(".PNG");
         pngBtn.getStyleClass().addAll("create-grid-btn");
         pngBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
         pngBtn.setOnAction(e -> {
             hideSaveOptionsMenu();
-            saveProjectAsImage("png");
+            saveProjectAsImage("png", transparentBgCheckbox.isSelected());
         });
 
         Button jpgBtn = new Button(".JPG");
@@ -412,7 +416,7 @@ public class MainController {
         jpgBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
         jpgBtn.setOnAction(e -> {
             hideSaveOptionsMenu();
-            saveProjectAsImage("jpg");
+            saveProjectAsImage("jpg", false);
         });
 
         Button gifBtn = new Button(".GIF");
@@ -420,11 +424,11 @@ public class MainController {
         gifBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
         gifBtn.setOnAction(e -> {
             hideSaveOptionsMenu();
-            saveProjectAsImage("gif");
+            saveProjectAsImage("gif", transparentBgCheckbox.isSelected());
         });
 
         imageBtns.getChildren().addAll(pngBtn, jpgBtn, gifBtn);
-        imageBlock.getChildren().addAll(imageLabel, imageBtns);
+        imageBlock.getChildren().addAll(imageLabel, transparentBgCheckbox, imageBtns);
 
         Button cancelBtn = new Button("Cancel");
         cancelBtn.getStyleClass().addAll("create-grid-btn", "warning-cancel-btn");
@@ -1121,7 +1125,7 @@ public class MainController {
         }
     }
 
-    private void saveProjectAsImage(String format) {
+    private void saveProjectAsImage(String format, boolean isTransparentBg) {
         if (mainCanvasView == null) return;
 
         FileChooser fileChooser = new FileChooser();
@@ -1141,9 +1145,22 @@ public class MainController {
             isHorizontalSymmetryActive = false;
             drawGrid();
 
+            String originalStyle = mainCanvasView.getStyle();
+            boolean originalGridVisible = gridCanvas.isVisible();
+
+            if (isTransparentBg) {
+                mainCanvasView.setStyle("-fx-background-color: transparent; -fx-border-width: 0; -fx-effect: none;");
+                gridCanvas.setVisible(false);
+            }
+
             SnapshotParameters params = new SnapshotParameters();
             params.setFill(Color.TRANSPARENT);
             WritableImage snapshot = mainCanvasView.snapshot(params, null);
+
+            if (isTransparentBg) {
+                mainCanvasView.setStyle(originalStyle != null ? originalStyle : "");
+                gridCanvas.setVisible(originalGridVisible);
+            }
 
             isVerticalSymmetryActive = prevVertical;
             isHorizontalSymmetryActive = prevHorizontal;
