@@ -485,7 +485,7 @@ public class MainController {
         // Section 2: Recent Projects
         VBox recentBlock = new VBox(10);
         recentBlock.setAlignment(javafx.geometry.Pos.CENTER);
-        recentBlock.getStyleClass().add("save-block-frame");
+        recentBlock.getStyleClass().addAll("save-block-frame", "recent-projects-tab");
         Label recentLabel = new Label("Recent Projects");
         recentLabel.getStyleClass().add("warning-label");
 
@@ -646,16 +646,13 @@ public class MainController {
                 java.util.Arrays.sort(files, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
                 for (File file : files) {
                     Button fileBtn = new Button(file.getName().replace(".json", ""));
-                    fileBtn.getStyleClass().addAll("create-grid-btn");
-                    fileBtn.setStyle("-fx-background-color: rgba(69, 69, 67, 0.6); -fx-text-fill: -fx-text-primary; -fx-border-color: rgba(130, 130, 128, 0.6); -fx-border-width: 1px; -fx-font-size: 14px; -fx-padding: 8px 15px;");
+                    fileBtn.getStyleClass().add("recent-project-btn");
                     fileBtn.setPrefWidth(140);
                     fileBtn.setOnAction(e -> {
                         hideOpenMenu();
                         loadProjectFromFile(file);
                     });
 
-                    fileBtn.setOnMouseEntered(ev -> fileBtn.setStyle("-fx-background-color: rgba(90, 90, 88, 0.8); -fx-text-fill: -fx-text-primary; -fx-border-color: rgba(130, 130, 128, 0.6); -fx-border-width: 1px; -fx-font-size: 14px; -fx-padding: 8px 15px;"));
-                    fileBtn.setOnMouseExited(ev -> fileBtn.setStyle("-fx-background-color: rgba(69, 69, 67, 0.6); -fx-text-fill: -fx-text-primary; -fx-border-color: rgba(130, 130, 128, 0.6); -fx-border-width: 1px; -fx-font-size: 14px; -fx-padding: 8px 15px;"));
 
                     recentList.getChildren().add(fileBtn);
                 }
