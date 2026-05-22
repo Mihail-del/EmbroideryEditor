@@ -44,6 +44,8 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.SnapshotParameters;
 import javafx.stage.FileChooser;
 
+import static editor.GridManager.*;
+
 public class MainController {
 
     @FXML
@@ -141,6 +143,9 @@ public class MainController {
     @FXML
     private StackPane colorCircle8;
 
+    private final GridManager gridManager = new GridManager();
+    private RenderEngine renderEngine;
+
     private static final String CIRCLE_COLOR_KEY = "circleBaseColor";
     private static final String CIRCLE_EMPTY_KEY = "circleIsEmpty";
     private static final String ACTIVE_CIRCLE_CLASS = "color-circle-active";
@@ -148,8 +153,6 @@ public class MainController {
     private StackPane activeColorCircle;
     private ColorPicker threadColorPicker;
 
-    private Image crossImage;
-    private Color[][] stitchColors;
     private final Map<String, Image> tintCache = new HashMap<>();
     private Color currentThreadColor = Color.web("#D97757");
 
@@ -180,15 +183,9 @@ public class MainController {
     private static final double GRID_PADDING = 12.0;
     private static final Color GRID_DOT_COLOR = Color.web("#97958C", 0.6);
 
-    private static final int GRID_MIN = 8;
-    private static final int GRID_MAX = 96;
-    private static final int GRID_STEP = 8;
-    private int gridSize = 32;
-
     @FXML
     public void initialize() {
         simulateLoading();
-        loadCrossImage();
 
         if (mainCanvasView != null && canvasContainer != null) {
             var squareSize = Bindings.min(
@@ -274,7 +271,7 @@ public class MainController {
         }
 
         if (gridSizeLabel != null) {
-            gridSizeLabel.setText(gridSize + " x " + gridSize);
+            gridSizeLabel.setText(gridManager.getGridSize() + " x " + gridManager.getGridSize());
         }
 
         if (gridMinusBtn != null) {
@@ -346,6 +343,25 @@ public class MainController {
         );
         autoSaveTimeline.setCycleCount(Timeline.INDEFINITE);
         autoSaveTimeline.play();
+
+        this.renderEngine = new RenderEngine(gridCanvas, stitchCanvas, gridManager);
+
+        if (renderEngine != null) {
+            renderEngine.drawGrid(isVerticalSymmetryActive, isHorizontalSymmetryActive);
+            renderEngine.drawStitches();
+        }
+    }
+
+    private void drawGrid() {
+        if (renderEngine != null) {
+            renderEngine.drawGrid(isVerticalSymmetryActive, isHorizontalSymmetryActive);
+        }
+    }
+
+    private void drawStitches() {
+        if (renderEngine != null) {
+            renderEngine.drawStitches();
+        }
     }
 
     private void initSaveOptionsMenu() {
@@ -717,13 +733,7 @@ public class MainController {
     }
 
     private boolean isCanvasClear() {
-        if (stitchColors == null) return true;
-        for (int r = 0; r < gridSize; r++) {
-            for (int c = 0; c < gridSize; c++) {
-                if (stitchColors[r][c] != null) return false;
-            }
-        }
-        return true;
+        return gridManager.isCanvasClear();
     }
 
     private void runWithSaveCheck(Runnable action) {
@@ -956,58 +966,6 @@ public class MainController {
         transition.play();
     }
 
-    private void drawGrid() {
-        if (gridCanvas == null) {
-            return;
-        }
-        double width = gridCanvas.getWidth();
-        double height = gridCanvas.getHeight();
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-
-        GraphicsContext gc = gridCanvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, width, height);
-        gc.setFill(GRID_DOT_COLOR);
-
-        double innerWidth = Math.max(0, width - (GRID_PADDING * 2));
-        double innerHeight = Math.max(0, height - (GRID_PADDING * 2));
-        if (innerWidth <= 0 || innerHeight <= 0) {
-            return;
-        }
-
-        double cellSize = Math.min(innerWidth, innerHeight) / gridSize;
-
-        for (int row = 0; row <= gridSize; row++) {
-            double y = GRID_PADDING + (row * cellSize);
-            for (int col = 0; col <= gridSize; col++) {
-                double x = GRID_PADDING + (col * cellSize);
-                gc.fillOval(x - DOT_RADIUS, y - DOT_RADIUS, DOT_RADIUS * 2, DOT_RADIUS * 2);
-            }
-        }
-
-        double gridTotalWidth = gridSize * cellSize;
-        double gridTotalHeight = gridSize * cellSize;
-
-        if (isVerticalSymmetryActive || isHorizontalSymmetryActive) {
-            gc.setStroke(Color.web("#D97757", 0.8)); // Accent color
-            gc.setLineWidth(2.0);
-            gc.setLineDashes(8, 8); // Dashed effect
-
-            if (isVerticalSymmetryActive) {
-                double exactMiddleX = GRID_PADDING + (gridTotalWidth / 2.0);
-                gc.strokeLine(exactMiddleX, GRID_PADDING, exactMiddleX, GRID_PADDING + gridTotalHeight);
-            }
-
-            if (isHorizontalSymmetryActive) {
-                double exactMiddleY = GRID_PADDING + (gridTotalHeight / 2.0);
-                gc.strokeLine(GRID_PADDING, exactMiddleY, GRID_PADDING + gridTotalWidth, exactMiddleY);
-            }
-
-            gc.setLineDashes((double[]) null);
-        }
-    }
-
     private void simulateLoading() {
         if (loadingBar != null) {
             Timeline timeline = new Timeline(
@@ -1025,23 +983,12 @@ public class MainController {
     }
 
     private void updateGridSize(int delta) {
-        int next = Math.max(GRID_MIN, Math.min(GRID_MAX, gridSize + delta));
-        if (next == gridSize) {
-            return;
-        }
-        gridSize = next;
-        if (gridSizeLabel != null) {
-            gridSizeLabel.setText(gridSize + " x " + gridSize);
-        }
-        resetStitches();
-        drawGrid();
-    }
-
-    private void loadCrossImage() {
-        var url = getClass().getResource("/images/cross_sample.png");
-        if (url != null) {
-            crossImage = new Image(url.toExternalForm());
-            tintCache.clear();
+        if (gridManager.updateGridSize(delta)) {
+            if (gridSizeLabel != null) {
+                gridSizeLabel.setText(gridManager.getGridSize() + " x " + gridManager.getGridSize());
+            }
+            drawGrid();
+            drawStitches();
         }
     }
 
@@ -1057,7 +1004,7 @@ public class MainController {
     }
 
     private void resetStitches() {
-        stitchColors = new Color[gridSize][gridSize];
+        gridManager.resetStitches();
         drawStitches();
     }
 
@@ -1071,23 +1018,9 @@ public class MainController {
                              : "project";
 
         Map<String, Object> projectData = new HashMap<>();
-        projectData.put("gridSize", gridSize);
+        projectData.put("gridSize", gridManager.getGridSize());
 
-        List<Map<String, Object>> stitches = new ArrayList<>();
-        if (stitchColors != null) {
-            for (int r = 0; r < gridSize; r++) {
-                for (int c = 0; c < gridSize; c++) {
-                    if (stitchColors[r][c] != null) {
-                        Map<String, Object> stitch = new HashMap<>();
-                        stitch.put("row", r);
-                        stitch.put("col", c);
-                        stitch.put("color", toRgba(stitchColors[r][c]));
-                        stitches.add(stitch);
-                    }
-                }
-            }
-        }
-        projectData.put("stitches", stitches);
+        projectData.put("stitches", gridManager.getStitchesAsList(this::toRgba));
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(projectData);
@@ -1120,23 +1053,9 @@ public class MainController {
         File file = fileChooser.showSaveDialog(mainApplicationLayout.getScene().getWindow());
         if (file != null) {
             Map<String, Object> projectData = new HashMap<>();
-            projectData.put("gridSize", gridSize);
+            projectData.put("gridSize", gridManager.getGridSize());
 
-            List<Map<String, Object>> stitches = new ArrayList<>();
-            if (stitchColors != null) {
-                for (int r = 0; r < gridSize; r++) {
-                    for (int c = 0; c < gridSize; c++) {
-                        if (stitchColors[r][c] != null) {
-                            Map<String, Object> stitch = new HashMap<>();
-                            stitch.put("row", r);
-                            stitch.put("col", c);
-                            stitch.put("color", toRgba(stitchColors[r][c]));
-                            stitches.add(stitch);
-                        }
-                    }
-                }
-            }
-            projectData.put("stitches", stitches);
+            projectData.put("stitches", gridManager.getStitchesAsList(this::toRgba));
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             try (FileWriter writer = new FileWriter(file)) {
@@ -1234,9 +1153,11 @@ public class MainController {
             Map<String, Object> projectData = gson.fromJson(content, Map.class);
 
             if (projectData.containsKey("gridSize")) {
-                gridSize = Math.max(GRID_MIN, Math.min(GRID_MAX, ((Double) projectData.get("gridSize")).intValue()));
+                int loadedSize = ((Double) projectData.get("gridSize")).intValue();
+                gridManager.setGridSize(loadedSize);
+
                 if (gridSizeLabel != null) {
-                    gridSizeLabel.setText(gridSize + " x " + gridSize);
+                    gridSizeLabel.setText(gridManager.getGridSize() + " x " + gridManager.getGridSize());
                 }
             }
 
@@ -1248,8 +1169,9 @@ public class MainController {
                     int r = ((Double) stitch.get("row")).intValue();
                     int c = ((Double) stitch.get("col")).intValue();
                     String colorStr = (String) stitch.get("color");
-                    if (r >= 0 && r < gridSize && c >= 0 && c < gridSize && colorStr != null) {
-                        stitchColors[r][c] = parseRgba(colorStr);
+
+                    if (gridManager.isValidCoordinate(r, c) && colorStr != null) {
+                        gridManager.setStitchColor(r, c, parseRgba(colorStr));
                     }
                 }
             }
@@ -1323,7 +1245,7 @@ public class MainController {
         if (createMenu != null && createMenu.isVisible()) {
             return;
         }
-        if (stitchCanvas == null || stitchColors == null) {
+        if (stitchCanvas == null) {
             return;
         }
 
@@ -1339,7 +1261,7 @@ public class MainController {
             return;
         }
 
-        double cellSize = Math.min(innerWidth, innerHeight) / gridSize;
+        double cellSize = Math.min(innerWidth, innerHeight) / gridManager.getGridSize();
         double gx = x - GRID_PADDING;
         double gy = y - GRID_PADDING;
         if (gx < 0 || gy < 0) {
@@ -1348,39 +1270,18 @@ public class MainController {
 
         int col = (int) Math.floor(gx / cellSize);
         int row = (int) Math.floor(gy / cellSize);
-        if (col < 0 || col >= gridSize || row < 0 || row >= gridSize) {
+        if (col < 0 || col >= gridManager.getGridSize() || row < 0 || row >= gridManager.getGridSize()) {
             return;
         }
 
         if (isEraserActive) {
-            // Eraser mode: remove stitches
-            stitchColors[row][col] = null;
-            if (isVerticalSymmetryActive) {
-                stitchColors[row][(gridSize - 1) - col] = null;
-            }
-            if (isHorizontalSymmetryActive) {
-                stitchColors[(gridSize - 1) - row][col] = null;
-            }
-            if (isVerticalSymmetryActive && isHorizontalSymmetryActive) {
-                stitchColors[(gridSize - 1) - row][(gridSize - 1) - col] = null;
-            }
+            gridManager.applyStitchWithSymmetry(row, col, null, isVerticalSymmetryActive, isHorizontalSymmetryActive);
         } else {
-            // Normal mode: add stitches
             if (currentThreadColor == null || currentThreadColor.equals(Color.TRANSPARENT)) {
                 return;
             }
-            stitchColors[row][col] = currentThreadColor;
-            if (isVerticalSymmetryActive) {
-                stitchColors[row][(gridSize - 1) - col] = currentThreadColor;
-            }
-            if (isHorizontalSymmetryActive) {
-                stitchColors[(gridSize - 1) - row][col] = currentThreadColor;
-            }
-            if (isVerticalSymmetryActive && isHorizontalSymmetryActive) {
-                stitchColors[(gridSize - 1) - row][(gridSize - 1) - col] = currentThreadColor;
-            }
+            gridManager.applyStitchWithSymmetry(row, col, currentThreadColor, isVerticalSymmetryActive, isHorizontalSymmetryActive);
         }
-
         drawStitches();
     }
 
@@ -1398,90 +1299,6 @@ public class MainController {
         Color color = getCircleColor(pane);
         if (color != null && !color.equals(Color.TRANSPARENT)) {
             currentThreadColor = color;
-        }
-    }
-
-    private Image getTintedImage(Color color) {
-        if (crossImage == null || crossImage.isError() || color == null) {
-            return crossImage;
-        }
-        String key = String.format("#%02X%02X%02X:%03d",
-                (int) Math.round(color.getRed() * 255),
-                (int) Math.round(color.getGreen() * 255),
-                (int) Math.round(color.getBlue() * 255),
-                (int) Math.round(color.getOpacity() * 255));
-        Image cached = tintCache.get(key);
-        if (cached != null) {
-            return cached;
-        }
-
-        int width = (int) crossImage.getWidth();
-        int height = (int) crossImage.getHeight();
-        if (width <= 0 || height <= 0) {
-            return crossImage;
-        }
-
-        WritableImage tinted = new WritableImage(width, height);
-        PixelReader reader = crossImage.getPixelReader();
-        PixelWriter writer = tinted.getPixelWriter();
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                Color src = reader.getColor(x, y);
-                double alpha = src.getOpacity();
-                if (alpha <= 0.0) {
-                    writer.setColor(x, y, Color.TRANSPARENT);
-                    continue;
-                }
-                writer.setColor(x, y, new Color(
-                        color.getRed(),
-                        color.getGreen(),
-                        color.getBlue(),
-                        alpha
-                ));
-            }
-        }
-
-        tintCache.put(key, tinted);
-        return tinted;
-    }
-
-    private void drawStitches() {
-        if (stitchCanvas == null) {
-            return;
-        }
-        double width = stitchCanvas.getWidth();
-        double height = stitchCanvas.getHeight();
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-
-        GraphicsContext gc = stitchCanvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, width, height);
-        if (crossImage == null || crossImage.isError() || stitchColors == null) {
-            return;
-        }
-
-        double innerWidth = Math.max(0, width - (GRID_PADDING * 2));
-        double innerHeight = Math.max(0, height - (GRID_PADDING * 2));
-        if (innerWidth <= 0 || innerHeight <= 0) {
-            return;
-        }
-
-        double cellSize = Math.min(innerWidth, innerHeight) / gridSize;
-        double imageSize = Math.max(1, cellSize * 0.8);
-
-        for (int row = 0; row < gridSize; row++) {
-            for (int col = 0; col < gridSize; col++) {
-                Color color = stitchColors[row][col];
-                if (color == null) {
-                    continue;
-                }
-                Image paintImage = getTintedImage(color);
-                double x = GRID_PADDING + (col * cellSize) + (cellSize - imageSize) / 2.0;
-                double y = GRID_PADDING + (row * cellSize) + (cellSize - imageSize) / 2.0;
-                gc.drawImage(paintImage, x, y, imageSize, imageSize);
-            }
         }
     }
 }
