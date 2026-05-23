@@ -10,6 +10,11 @@ import javafx.scene.paint.Color;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Responsible for all canvas rendering in the application, including drawing the grid and stitches.
+ * It manages the rendering logic, image tinting for stitches, and caching of tinted images for performance optimization.
+ * The grid is drawn with a dot pattern and optional symmetry lines, while stitches are rendered as tinted cross images based on their assigned colors in the GridManager.
+ */
 public class RenderEngine {
     private final Canvas gridCanvas;
     private final Canvas stitchCanvas;

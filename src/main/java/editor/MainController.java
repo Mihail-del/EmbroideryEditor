@@ -344,8 +344,6 @@ public class MainController {
         }
     }
 
-
-
     private boolean isCanvasClear() {
         return gridManager.isCanvasClear();
     }
@@ -375,40 +373,6 @@ public class MainController {
             mainApplicationLayout.getChildren().remove(loadingScreen);
         });
         delay.play();
-    }
-
-    private void growGrid() {
-        if (gridManager.incrementGridSize()) {
-            onGridSizeChanged();
-        }
-    }
-
-    private void shrinkGrid() {
-        if (gridManager.decrementGridSize()) {
-            onGridSizeChanged();
-        }
-    }
-
-    private void onGridSizeChanged() {
-        if (gridSizeLabel != null) {
-            gridSizeLabel.setText(gridManager.getGridSize() + " x " + gridManager.getGridSize());
-        }
-        drawGrid();
-        drawStitches();
-    }
-
-    /**
-     * Increases the grid size by the specified step (GRID_STEP)
-     */
-    public void incrementGridSize() {
-        updateGridSize(GRID_STEP);
-    }
-
-    /**
-     * Reduces the grid size by the specified step (GRID_STEP)
-     */
-    public void decrementGridSize() {
-        updateGridSize(-GRID_STEP);
     }
 
     private void updateGridSize(int delta) {
@@ -499,8 +463,6 @@ public class MainController {
         isVerticalSymmetryActive = prevVertical;
         isHorizontalSymmetryActive = prevHorizontal;
         drawGrid();
-
-        // Delegate image writing to ProjectService
         projectService.exportImage(snapshot, format, file);
     }
 
