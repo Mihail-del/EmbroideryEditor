@@ -178,6 +178,13 @@ public class MainController {
         if (verticalSymmetryBox != null) {
             verticalSymmetryBox.setOnMouseClicked(e -> {
                 isVerticalSymmetryActive = !isVerticalSymmetryActive;
+                if (isVerticalSymmetryActive) {
+                    if (!verticalSymmetryBox.getStyleClass().contains("symmetry-active")) {
+                        verticalSymmetryBox.getStyleClass().add("symmetry-active");
+                    }
+                } else {
+                    verticalSymmetryBox.getStyleClass().remove("symmetry-active");
+                }
                 drawGrid();
             });
         }
@@ -185,6 +192,13 @@ public class MainController {
         if (horizontalSymmetryBox != null) {
             horizontalSymmetryBox.setOnMouseClicked(e -> {
                 isHorizontalSymmetryActive = !isHorizontalSymmetryActive;
+                if (isHorizontalSymmetryActive) {
+                    if (!horizontalSymmetryBox.getStyleClass().contains("symmetry-active")) {
+                        horizontalSymmetryBox.getStyleClass().add("symmetry-active");
+                    }
+                } else {
+                    horizontalSymmetryBox.getStyleClass().remove("symmetry-active");
+                }
                 drawGrid();
             });
         }
