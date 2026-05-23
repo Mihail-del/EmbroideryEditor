@@ -125,6 +125,7 @@ public class MainController {
     private ThreadPaletteManager paletteManager;
     private final NavigationManager navManager = new NavigationManager();
     private StitchInteractionHandler stitchHandler;
+    private NotificationManager notificationManager;
 
     private boolean isVerticalSymmetryActive = false;
     private boolean isHorizontalSymmetryActive = false;
@@ -326,6 +327,8 @@ public class MainController {
         autoSaveTimeline.setCycleCount(Timeline.INDEFINITE);
         autoSaveTimeline.play();
 
+        this.notificationManager = new NotificationManager(autoSaveLabel);
+
         this.renderEngine = new RenderEngine(gridCanvas, stitchCanvas, gridManager);
 
         if (renderEngine != null) {
@@ -363,39 +366,9 @@ public class MainController {
 
     private void autoSaveProject() {
         projectService.saveProject(getProjectName(), gridManager);
-        showAutoSaveNotification();
-    }
-
-    private Timeline autoSaveNotificationTimeline = null;
-
-    private void showAutoSaveNotification() {
-        if (autoSaveLabel == null) return;
-
-        if (autoSaveNotificationTimeline != null) {
-            autoSaveNotificationTimeline.stop();
+        if (notificationManager != null) {
+            notificationManager.showAutoSaveNotification();
         }
-
-        autoSaveLabel.setOpacity(0.0);
-        autoSaveLabel.setTranslateY(-10);
-        autoSaveLabel.setVisible(true);
-
-        autoSaveNotificationTimeline = new Timeline(
-            new KeyFrame(Duration.millis(300),
-                new KeyValue(autoSaveLabel.opacityProperty(), 1.0),
-                new KeyValue(autoSaveLabel.translateYProperty(), 0.0)
-            ),
-            new KeyFrame(Duration.millis(2300),
-                new KeyValue(autoSaveLabel.opacityProperty(), 1.0),
-                new KeyValue(autoSaveLabel.translateYProperty(), 0.0)
-            ),
-            new KeyFrame(Duration.millis(2800),
-                new KeyValue(autoSaveLabel.opacityProperty(), 0.0),
-                new KeyValue(autoSaveLabel.translateYProperty(), -10.0)
-            )
-        );
-
-        autoSaveNotificationTimeline.setOnFinished(e -> autoSaveLabel.setVisible(false));
-        autoSaveNotificationTimeline.play();
     }
 
     private void simulateLoading() {
