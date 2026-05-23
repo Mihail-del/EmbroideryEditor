@@ -1,6 +1,5 @@
 package editor;
 
-import javafx.animation.Transition;
 import javafx.animation.PauseTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -34,8 +33,6 @@ public class MainController {
 
     @FXML
     private ProgressBar loadingBar;
-
-    private Label activeNavLabel;
 
     @FXML
     private Label createNavLabel;
@@ -123,13 +120,7 @@ public class MainController {
     private RenderEngine renderEngine;
     private MenuManager menuManager;
     private ThreadPaletteManager paletteManager;
-
-    private static final Color NAV_IDLE_TEXT = Color.web("#F9F9F7");
-    private static final Color NAV_ACTIVE_TEXT = Color.web("#D97757");
-    private static final Color NAV_BORDER_ACTIVE = Color.web("#D97757");
-    private static final Color NAV_BORDER_TRANSPARENT = Color.web("#D97757", 0.0);
-
-    private static final String NAV_STATE_KEY = "navState";
+    private final NavigationManager navManager = new NavigationManager();
 
     private boolean isVerticalSymmetryActive = false;
     private boolean isHorizontalSymmetryActive = false;
@@ -137,17 +128,7 @@ public class MainController {
     private boolean isEraserActive = false;
     private Runnable pendingAction;
 
-    private enum NavState {
-        IDLE,
-        ACTIVE
-    }
-
-    private final Color IDLE_COLOR = Color.web("#252524"); // -fx-bg-secondary
-    private final Color HOVER_COLOR = Color.web("#1f1f1e"); // -fx-bg-primary
-
-    private static final double DOT_RADIUS = 1.5;
     private static final double GRID_PADDING = 12.0;
-    private static final Color GRID_DOT_COLOR = Color.web("#97958C", 0.6);
 
     @FXML
     public void initialize() {
@@ -177,8 +158,8 @@ public class MainController {
         setupStitchLayer();
         resetStitches();
 
-        setupSymmetryButtonAnimations(horizontalSymmetryBox);
-        setupSymmetryButtonAnimations(verticalSymmetryBox);
+        navManager.setupButtonHoverAnimation(horizontalSymmetryBox);
+        navManager.setupButtonHoverAnimation(verticalSymmetryBox);
 
         if (verticalSymmetryBox != null) {
             verticalSymmetryBox.setOnMouseClicked(e -> {
@@ -239,31 +220,32 @@ public class MainController {
             gridPlusBtn.setOnMouseClicked(e -> updateGridSize(GRID_STEP));
         }
 
-        activeNavLabel = (Label) mainApplicationLayout.lookup(".active-nav");
-        if (activeNavLabel != null)
-            setupNavHover(activeNavLabel, true);
+        Label activeNav = (Label) mainApplicationLayout.lookup(".active-nav");
+        navManager.setActiveNavLabel(activeNav);
+        if (activeNav != null)
+            navManager.setupNavHover(activeNav, true);
         if (createNavLabel != null) {
-            setupNavHover(createNavLabel, false);
+            navManager.setupNavHover(createNavLabel, false);
             createNavLabel.setOnMouseClicked(e -> runWithSaveCheck(this::showCreateMenu));
         }
-        setupNavHover(saveNavLabel, false);
+        navManager.setupNavHover(saveNavLabel, false);
         if (saveNavLabel != null) {
             saveNavLabel.setOnMouseClicked(e -> menuManager.showSaveOptionsMenu());
         }
-        setupNavHover(openNavLabel, false);
+        navManager.setupNavHover(openNavLabel, false);
         if (openNavLabel != null) {
             openNavLabel.setOnMouseClicked(e -> runWithSaveCheck(menuManager::showOpenMenu));
         }
-        setupNavHover(infoNavLabel, false);
+        navManager.setupNavHover(infoNavLabel, false);
         if (infoNavLabel != null) {
             infoNavLabel.setOnMouseClicked(e -> menuManager.showInfoMenu());
         }
 
-        setupSymmetryButtonAnimations(horizontalSymmetryBox);
-        setupSymmetryButtonAnimations(verticalSymmetryBox);
+        navManager.setupButtonHoverAnimation(horizontalSymmetryBox);
+        navManager.setupButtonHoverAnimation(verticalSymmetryBox);
 
-        setupSymmetryButtonAnimations(gridMinusBtn);
-        setupSymmetryButtonAnimations(gridPlusBtn);
+        navManager.setupButtonHoverAnimation(gridMinusBtn);
+        navManager.setupButtonHoverAnimation(gridPlusBtn);
 
         if (clearCanvasBtn != null) {
             clearCanvasBtn.setOnMouseClicked(e -> clearCanvas());
@@ -367,90 +349,6 @@ public class MainController {
             projectService.saveProject(getProjectName(), gridManager);
         }
         action.run();
-    }
-
-    private void setupNavHover(Label label, boolean isActive) {
-        label.getProperties().put(NAV_STATE_KEY, isActive ? NavState.ACTIVE : NavState.IDLE);
-        setNavStyle(label, isActive ? NAV_ACTIVE_TEXT : NAV_IDLE_TEXT,
-                isActive ? NAV_BORDER_ACTIVE : NAV_BORDER_TRANSPARENT,
-                isActive);
-
-        label.setOnMouseEntered(e -> animateNavTo(label, NavState.ACTIVE));
-        label.setOnMouseExited(e -> {
-            NavState targetState = (label == activeNavLabel) ? NavState.ACTIVE : NavState.IDLE;
-            animateNavTo(label, targetState);
-        });
-    }
-
-    private void animateNavTo(Label label, NavState targetState) {
-        NavState currentState = (NavState) label.getProperties().getOrDefault(NAV_STATE_KEY, NavState.IDLE);
-        if (currentState == targetState) {
-            return;
-        }
-
-        Color fromText = currentState == NavState.ACTIVE ? NAV_ACTIVE_TEXT : NAV_IDLE_TEXT;
-        Color toText = targetState == NavState.ACTIVE ? NAV_ACTIVE_TEXT : NAV_IDLE_TEXT;
-        Color fromBorder = currentState == NavState.ACTIVE ? NAV_BORDER_ACTIVE : NAV_BORDER_TRANSPARENT;
-        Color toBorder = targetState == NavState.ACTIVE ? NAV_BORDER_ACTIVE : NAV_BORDER_TRANSPARENT;
-
-        Transition transition = new Transition() {
-            {
-                setCycleDuration(Duration.millis(300));
-            }
-
-            @Override
-            protected void interpolate(double frac) {
-                Color text = fromText.interpolate(toText, frac);
-                Color border = fromBorder.interpolate(toBorder, frac);
-                setNavStyle(label, text, border, targetState == NavState.ACTIVE);
-            }
-        };
-
-        label.getProperties().put(NAV_STATE_KEY, targetState);
-        transition.play();
-    }
-
-    private void setNavStyle(Label label, Color text, Color border, boolean isActive) {
-        String borderWidth = isActive ? "0 0 2 0" : "0";
-        String style = "-fx-text-fill: " + toRgba(text) + ";" +
-                "-fx-border-color: " + toRgba(border) + ";" +
-                "-fx-border-width: " + borderWidth + ";";
-        label.setStyle(style);
-    }
-
-    private String toRgba(Color color) {
-        return ProjectService.toRgba(color);
-    }
-
-    private void setupSymmetryButtonAnimations(javafx.scene.Node node) {
-        node.setOnMouseEntered(e -> animateBackground(node, IDLE_COLOR, HOVER_COLOR, true));
-        node.setOnMouseExited(e -> animateBackground(node, HOVER_COLOR, IDLE_COLOR, false));
-    }
-
-
-
-    private void animateBackground(javafx.scene.Node node, Color from, Color to, boolean isHover) {
-        Transition transition = new Transition() {
-            {
-                setCycleDuration(Duration.millis(300));
-            }
-
-            @Override
-            protected void interpolate(double frac) {
-                Color interpolated = from.interpolate(to, frac);
-                String colorHex = String.format("#%02X%02X%02X",
-                        (int) (interpolated.getRed() * 255),
-                        (int) (interpolated.getGreen() * 255),
-                        (int) (interpolated.getBlue() * 255));
-
-                String style = "-fx-background-color: " + colorHex + ";";
-                if (isHover) {
-                    style += "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 2);";
-                }
-                node.setStyle(style);
-            }
-        };
-        transition.play();
     }
 
     private void simulateLoading() {
