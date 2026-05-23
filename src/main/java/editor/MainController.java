@@ -11,38 +11,20 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.effect.DropShadow;
 import javafx.util.Duration;
 import javafx.beans.binding.Bindings;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Locale;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.SnapshotParameters;
-import javafx.stage.FileChooser;
+import java.io.File;
 
 import static editor.GridManager.*;
 
@@ -114,9 +96,6 @@ public class MainController {
     private VBox createMenu;
 
     @FXML
-    private VBox infoMenu;
-
-    @FXML
     private TextField projectNameField;
 
     @FXML
@@ -144,7 +123,9 @@ public class MainController {
     private StackPane colorCircle8;
 
     private final GridManager gridManager = new GridManager();
+    private final ProjectService projectService = new ProjectService();
     private RenderEngine renderEngine;
+    private MenuManager menuManager;
 
     private static final String CIRCLE_COLOR_KEY = "circleBaseColor";
     private static final String CIRCLE_EMPTY_KEY = "circleIsEmpty";
@@ -152,8 +133,6 @@ public class MainController {
 
     private StackPane activeColorCircle;
     private ColorPicker threadColorPicker;
-
-    private final Map<String, Image> tintCache = new HashMap<>();
     private Color currentThreadColor = Color.web("#D97757");
 
     private static final Color NAV_IDLE_TEXT = Color.web("#F9F9F7");
@@ -167,8 +146,6 @@ public class MainController {
     private boolean isHorizontalSymmetryActive = false;
 
     private boolean isEraserActive = false;
-    private VBox saveOptionsMenu;
-    private VBox openMenu;
     private Runnable pendingAction;
 
     private enum NavState {
@@ -229,12 +206,7 @@ public class MainController {
         }
 
         if (closeCreateMenuBtn != null) {
-            closeCreateMenuBtn.setOnMouseClicked(e -> {
-                if (createMenu != null) {
-                    createMenu.setManaged(false);
-                    createMenu.setVisible(false);
-                }
-            });
+            closeCreateMenuBtn.setOnMouseClicked(e -> menuManager.hideCreateMenu());
         }
 
         if (createGridBtn != null && projectNameField != null) {
@@ -263,10 +235,7 @@ public class MainController {
                     projectNameField.requestFocus();
                     return;
                 }
-                if (createMenu != null) {
-                    createMenu.setManaged(false);
-                    createMenu.setVisible(false);
-                }
+                menuManager.hideCreateMenu();
             });
         }
 
@@ -290,15 +259,15 @@ public class MainController {
         }
         setupNavHover(saveNavLabel, false);
         if (saveNavLabel != null) {
-            saveNavLabel.setOnMouseClicked(e -> showSaveOptionsMenu());
+            saveNavLabel.setOnMouseClicked(e -> menuManager.showSaveOptionsMenu());
         }
         setupNavHover(openNavLabel, false);
         if (openNavLabel != null) {
-            openNavLabel.setOnMouseClicked(e -> runWithSaveCheck(this::showOpenMenu));
+            openNavLabel.setOnMouseClicked(e -> runWithSaveCheck(menuManager::showOpenMenu));
         }
         setupNavHover(infoNavLabel, false);
         if (infoNavLabel != null) {
-            infoNavLabel.setOnMouseClicked(e -> showInfoMenu());
+            infoNavLabel.setOnMouseClicked(e -> menuManager.showInfoMenu());
         }
 
         setupSymmetryButtonAnimations(horizontalSymmetryBox);
@@ -317,6 +286,34 @@ public class MainController {
 
         initThreadColorPicker();
 
+        menuManager = new MenuManager(mainCanvasView, createMenu, threadColorPicker, new MenuManager.MenuCallbacks() {
+            @Override
+            public void onSaveAsJson() {
+                projectService.saveProjectAsJson(getProjectName(), gridManager,
+                        mainApplicationLayout.getScene().getWindow());
+            }
+
+            @Override
+            public void onExportImage(String format, boolean transparentBg) {
+                handleImageExport(format, transparentBg);
+            }
+
+            @Override
+            public void onBrowseOpenFile() {
+                openProjectFromFileChooser();
+            }
+
+            @Override
+            public void onLoadRecentProject(File file) {
+                loadProjectFromFile(file);
+            }
+
+            @Override
+            public void onHideAllMenus() {
+                menuManager.hideAllMenus();
+            }
+        });
+
         setupColorCircleAnimations(colorCircle1, Color.web("#D97757"));
         setupColorCircleAnimations(colorCircle2, Color.web("#F4AAA9"));
         setupColorCircleAnimations(colorCircle3, Color.TRANSPARENT);
@@ -330,14 +327,13 @@ public class MainController {
             setActiveThreadCircle(colorCircle1);
         }
 
-        initSaveOptionsMenu();
-        initOpenMenu();
-        initInfoMenu();
+        menuManager.initAllMenus();
 
         Timeline autoSaveTimeline = new Timeline(
             new KeyFrame(Duration.seconds(10), e -> {
                 if (!isCanvasClear()) {
-                    saveProject();
+                    String projectName = getProjectName();
+                    projectService.saveProject(projectName, gridManager);
                 }
             })
         );
@@ -364,385 +360,19 @@ public class MainController {
         }
     }
 
-    private void initSaveOptionsMenu() {
-        if (mainCanvasView == null) return;
-        saveOptionsMenu = new VBox(20);
-        saveOptionsMenu.getStyleClass().add("save-options-menu");
-        saveOptionsMenu.setAlignment(javafx.geometry.Pos.CENTER);
 
-        StackPane headerPane = new StackPane();
-
-        Label titleLabel = new Label("Save Options");
-        titleLabel.getStyleClass().add("warning-label");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
-
-        Label closeBtn = new Label();
-        ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
-        closeIcon.setFitWidth(14);
-        closeIcon.setFitHeight(14);
-        closeBtn.setGraphic(closeIcon);
-        closeBtn.getStyleClass().add("close-btn");
-        closeBtn.setOnMouseClicked(e -> hideSaveOptionsMenu());
-
-        StackPane.setAlignment(closeBtn, javafx.geometry.Pos.TOP_RIGHT);
-        StackPane.setMargin(closeBtn, new javafx.geometry.Insets(-10, -10, 0, 0));
-
-        headerPane.getChildren().addAll(titleLabel, closeBtn);
-
-        // Template Block
-        VBox templateBlock = new VBox(10);
-        templateBlock.setAlignment(javafx.geometry.Pos.CENTER);
-        templateBlock.getStyleClass().add("save-block-frame");
-        Label templateLabel = new Label("Save as Template");
-        templateLabel.getStyleClass().add("warning-label");
-
-        Button jsonBtn = new Button(".JSON");
-        jsonBtn.getStyleClass().addAll("create-grid-btn");
-        jsonBtn.setPrefWidth(240);
-        jsonBtn.setOnAction(e -> {
-            hideSaveOptionsMenu();
-            saveProjectAsJson();
-        });
-        templateBlock.getChildren().addAll(templateLabel, jsonBtn);
-
-        // Image Block
-        VBox imageBlock = new VBox(10);
-        imageBlock.setAlignment(javafx.geometry.Pos.CENTER);
-        imageBlock.getStyleClass().add("save-block-frame");
-        Label imageLabel = new Label("Save as Image");
-        imageLabel.getStyleClass().add("warning-label");
-
-        HBox imageBtns = new HBox(15);
-        imageBtns.setAlignment(javafx.geometry.Pos.CENTER);
-
-        javafx.scene.control.CheckBox transparentBgCheckbox = new javafx.scene.control.CheckBox("Transparent Background");
-        transparentBgCheckbox.getStyleClass().add("custom-checkbox");
-
-        Button pngBtn = new Button(".PNG");
-        pngBtn.getStyleClass().addAll("create-grid-btn");
-        pngBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
-        pngBtn.setOnAction(e -> {
-            hideSaveOptionsMenu();
-            saveProjectAsImage("png", transparentBgCheckbox.isSelected());
-        });
-
-        Button jpgBtn = new Button(".JPG");
-        jpgBtn.getStyleClass().addAll("create-grid-btn");
-        jpgBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
-        jpgBtn.disableProperty().bind(transparentBgCheckbox.selectedProperty());
-        jpgBtn.setOnAction(e -> {
-            hideSaveOptionsMenu();
-            saveProjectAsImage("jpg", false);
-        });
-
-        Button gifBtn = new Button(".GIF");
-        gifBtn.getStyleClass().addAll("create-grid-btn");
-        gifBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
-        gifBtn.setOnAction(e -> {
-            hideSaveOptionsMenu();
-            saveProjectAsImage("gif", transparentBgCheckbox.isSelected());
-        });
-
-        imageBtns.getChildren().addAll(pngBtn, jpgBtn, gifBtn);
-        imageBlock.getChildren().addAll(imageLabel, transparentBgCheckbox, imageBtns);
-
-        Button cancelBtn = new Button("Cancel");
-        cancelBtn.getStyleClass().addAll("create-grid-btn", "warning-cancel-btn");
-        cancelBtn.setPrefWidth(120);
-        cancelBtn.setOnAction(e -> hideSaveOptionsMenu());
-
-        saveOptionsMenu.getChildren().addAll(headerPane, templateBlock, imageBlock, cancelBtn);
-        saveOptionsMenu.setVisible(false);
-        saveOptionsMenu.setManaged(false);
-
-        mainCanvasView.getChildren().add(saveOptionsMenu);
-    }
-
-    private void initOpenMenu() {
-        if (mainCanvasView == null) return;
-        openMenu = new VBox(20);
-        openMenu.getStyleClass().add("save-options-menu");
-        openMenu.setAlignment(javafx.geometry.Pos.CENTER);
-
-        StackPane headerPane = new StackPane();
-
-        Label titleLabel = new Label("Open Project");
-        titleLabel.getStyleClass().add("warning-label");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
-
-        Label closeBtn = new Label();
-        ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
-        closeIcon.setFitWidth(14);
-        closeIcon.setFitHeight(14);
-        closeBtn.setGraphic(closeIcon);
-        closeBtn.getStyleClass().add("close-btn");
-        closeBtn.setOnMouseClicked(e -> hideOpenMenu());
-
-        StackPane.setAlignment(closeBtn, javafx.geometry.Pos.TOP_RIGHT);
-        StackPane.setMargin(closeBtn, new javafx.geometry.Insets(-10, -10, 0, 0));
-
-        headerPane.getChildren().addAll(titleLabel, closeBtn);
-
-        // Section 1: Open from file
-        VBox fileBlock = new VBox(10);
-        fileBlock.setAlignment(javafx.geometry.Pos.CENTER);
-        fileBlock.getStyleClass().add("save-block-frame");
-        Label fileLabel = new Label("Open from JSON");
-        fileLabel.getStyleClass().add("warning-label");
-        Button browseBtn = new Button("Browse...");
-        browseBtn.getStyleClass().addAll("create-grid-btn");
-        browseBtn.setPrefWidth(240);
-        browseBtn.setOnAction(e -> {
-            hideOpenMenu();
-            openProjectFromFileChooser();
-        });
-        fileBlock.getChildren().addAll(fileLabel, browseBtn);
-
-        // Section 2: Recent Projects
-        VBox recentBlock = new VBox(10);
-        recentBlock.setAlignment(javafx.geometry.Pos.CENTER);
-        recentBlock.getStyleClass().addAll("save-block-frame", "recent-projects-tab");
-        Label recentLabel = new Label("Recent Projects");
-        recentLabel.getStyleClass().add("warning-label");
-
-        javafx.scene.layout.TilePane recentList = new javafx.scene.layout.TilePane();
-        recentList.setAlignment(javafx.geometry.Pos.CENTER);
-        recentList.setHgap(10);
-        recentList.setVgap(10);
-        recentList.setPrefColumns(2);
-
-        javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(recentList);
-        scrollPane.setFitToWidth(true);
-        scrollPane.getStyleClass().add("styled-scroll-pane");
-        scrollPane.setPrefViewportHeight(140);
-        scrollPane.setMaxHeight(140);
-        scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
-
-        recentBlock.getChildren().addAll(recentLabel, scrollPane);
-
-        openMenu.getChildren().addAll(headerPane, fileBlock, recentBlock);
-        openMenu.setVisible(false);
-        openMenu.setManaged(false);
-
-        openMenu.getProperties().put("recentList", recentList);
-
-        mainCanvasView.getChildren().add(openMenu);
-    }
-
-    private void showSaveOptionsMenu() {
-        hideAllMenus();
-        if (saveOptionsMenu != null) {
-            saveOptionsMenu.setVisible(true);
-            saveOptionsMenu.setManaged(true);
-        }
-    }
-
-    private void hideSaveOptionsMenu() {
-        if (saveOptionsMenu != null) {
-            saveOptionsMenu.setVisible(false);
-            saveOptionsMenu.setManaged(false);
-        }
-    }
-
-    private void showOpenMenu() {
-        hideAllMenus();
-        if (openMenu != null) {
-            updateRecentProjectsList();
-            openMenu.setVisible(true);
-            openMenu.setManaged(true);
-        }
-    }
-
-    private void hideOpenMenu() {
-        if (openMenu != null) {
-            openMenu.setVisible(false);
-            openMenu.setManaged(false);
-        }
-    }
-
-    private void initInfoMenu() {
-        if (mainCanvasView == null) return;
-        infoMenu = new VBox(20);
-        infoMenu.getStyleClass().add("save-options-menu"); // Reusing your modal styling
-        infoMenu.setAlignment(javafx.geometry.Pos.CENTER);
-
-        StackPane headerPane = new StackPane();
-
-        Label titleLabel = new Label("Information & Guide");
-        titleLabel.getStyleClass().add("warning-label");
-        titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
-
-        Label closeBtn = new Label();
-        ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
-        closeIcon.setFitWidth(14);
-        closeIcon.setFitHeight(14);
-        closeBtn.setGraphic(closeIcon);
-        closeBtn.getStyleClass().add("close-btn");
-        closeBtn.setOnMouseClicked(e -> hideInfoMenu());
-
-        StackPane.setAlignment(closeBtn, javafx.geometry.Pos.TOP_RIGHT);
-        StackPane.setMargin(closeBtn, new javafx.geometry.Insets(-10, -10, 0, 0));
-
-        headerPane.getChildren().addAll(titleLabel, closeBtn);
-
-        // Info Content Block
-        VBox contentBlock = new VBox(10);
-        contentBlock.setAlignment(javafx.geometry.Pos.CENTER);
-        contentBlock.getStyleClass().add("save-block-frame");
-
-        Label infoText = new Label(
-                "Vyshyvanka Editor: User Guide\n\n" +
-
-                        "1. Basic Drawing & Tools\n" +
-                        "• Drawing Stitches: Left-click or click-and-drag to place cross-stitches.\n" +
-                        "• Eraser: Toggle Eraser mode from the bottom toolbar to remove stitches.\n" +
-                        "• Clear Canvas: Instantly wipes the entire board clean.\n" +
-                        "• Animate: Plays a step-by-step visual animation of your embroidery process.\n\n" +
-
-                        "2. Thread Palette & Color Management\n" +
-                        "• Select a Color: Left-click any filled color circle to make it active.\n" +
-                        "• Add a New Color: Left-click an empty slot (+) to open the Color Picker.\n" +
-                        "• Replace a Color: Right-click an active color to replace it.\n\n" +
-
-                        "3. Symmetry Controls\n" +
-                        "• Vertical/Horizontal: Mirrors your drawing across the center guide lines.\n" +
-                        "• Full Symmetry: Turn on both to mirror your stitches into all four quadrants.\n\n" +
-
-                        "4. Project Management\n" +
-                        "• Create: Start a new workspace and set a custom grid size (8x8 to 96x96).\n" +
-                        "• Save: Export as Image (.PNG, .JPG, .GIF) or save as Template (.JSON).\n" +
-                        "• Open: Load a previously saved .JSON file or pick from \"Recent Projects\"."
-        );
-        infoText.getStyleClass().add("warning-label");
-        infoText.setStyle("-fx-text-alignment: left; -fx-font-size: 13px; -fx-line-spacing: 3px; -fx-wrap-text: true;");
-        javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(infoText);
-        scrollPane.setFitToWidth(true);
-        scrollPane.getStyleClass().add("styled-scroll-pane");
-
-        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-
-        scrollPane.setPrefViewportHeight(240);
-        scrollPane.setMaxHeight(240);
-
-        scrollPane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
-
-        contentBlock.getChildren().add(scrollPane);
-
-        infoMenu.getChildren().addAll(headerPane, contentBlock);
-        infoMenu.setVisible(false);
-        infoMenu.setManaged(false);
-
-        mainCanvasView.getChildren().add(infoMenu);
-    }
-
-    private void showInfoMenu() {
-        hideAllMenus();
-        if (infoMenu != null) {
-            infoMenu.setVisible(true);
-            infoMenu.setManaged(true);
-        }
-    }
-
-    private void hideInfoMenu() {
-        if (infoMenu != null) {
-            infoMenu.setVisible(false);
-            infoMenu.setManaged(false);
-        }
-    }
-
-    private void updateRecentProjectsList() {
-        javafx.scene.layout.TilePane recentList = (javafx.scene.layout.TilePane) openMenu.getProperties().get("recentList");
-        recentList.getChildren().clear();
-        File dir = new File("src/main/resources/templates");
-        if (dir.exists() && dir.isDirectory()) {
-            File[] files = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".json"));
-            if (files != null && files.length > 0) {
-                java.util.Arrays.sort(files, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
-                for (File file : files) {
-                    HBox fileBox = new HBox(5);
-                    fileBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-                    fileBox.getStyleClass().add("recent-project-btn");
-                    fileBox.setPrefWidth(140);
-                    fileBox.setMaxWidth(140);
-
-                    Label nameLabel = new Label(file.getName().replace(".json", ""));
-                    nameLabel.setStyle("-fx-text-fill: -fx-text-primary; -fx-font-size: 14px;");
-
-                    Region spacer = new Region();
-                    HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-
-                    ImageView closeIcon = new ImageView(new Image(getClass().getResource("/icons/close.png").toExternalForm()));
-                    closeIcon.setFitWidth(10);
-                    closeIcon.setFitHeight(10);
-
-                    Label deleteBtn = new Label();
-                    deleteBtn.setGraphic(closeIcon);
-                    deleteBtn.getStyleClass().add("close-btn");
-                    deleteBtn.setOnMouseClicked(e -> {
-                        e.consume(); // Prevent HBox from being clicked
-                        try {
-                            java.nio.file.Files.deleteIfExists(file.toPath());
-                            updateRecentProjectsList(); // Refresh the list
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    });
-
-                    fileBox.getChildren().addAll(nameLabel, spacer, deleteBtn);
-                    fileBox.setOnMouseClicked(e -> {
-                        hideOpenMenu();
-                        loadProjectFromFile(file);
-                    });
-
-                    recentList.getChildren().add(fileBox);
-                }
-            } else {
-                Label noFiles = new Label("No recent projects found.");
-                noFiles.getStyleClass().add("warning-label");
-                recentList.getChildren().add(noFiles);
-            }
-        } else {
-            Label noFiles = new Label("No recent projects found.");
-            noFiles.getStyleClass().add("warning-label");
-            recentList.getChildren().add(noFiles);
-        }
-    }
-
-    private void hideAllMenus() {
-        if (createMenu != null) {
-            createMenu.setVisible(false);
-            createMenu.setManaged(false);
-        }
-        if (saveOptionsMenu != null) {
-            saveOptionsMenu.setVisible(false);
-            saveOptionsMenu.setManaged(false);
-        }
-        if (openMenu != null) {
-            openMenu.setVisible(false);
-            openMenu.setManaged(false);
-        }
-        if (infoMenu != null) {
-            infoMenu.setVisible(false);
-            infoMenu.setManaged(false);
-        }
-        if (threadColorPicker != null) {
-            threadColorPicker.hide();
-        }
-    }
 
     private boolean isCanvasClear() {
         return gridManager.isCanvasClear();
     }
 
     private void runWithSaveCheck(Runnable action) {
-        if (createMenu != null && createMenu.isVisible()) {
+        if (menuManager.isCreateMenuVisible()) {
             action.run();
             return;
         }
         if (!isCanvasClear()) {
-            saveProject();
+            projectService.saveProject(getProjectName(), gridManager);
         }
         action.run();
     }
@@ -797,11 +427,7 @@ public class MainController {
     }
 
     private String toRgba(Color color) {
-        return String.format(Locale.US, "rgba(%d, %d, %d, %.3f)",
-                (int) Math.round(color.getRed() * 255),
-                (int) Math.round(color.getGreen() * 255),
-                (int) Math.round(color.getBlue() * 255),
-                color.getOpacity());
+        return ProjectService.toRgba(color);
     }
 
     private void setupSymmetryButtonAnimations(javafx.scene.Node node) {
@@ -862,7 +488,7 @@ public class MainController {
         if (threadColorPicker == null || pane == null) {
             return;
         }
-        hideAllMenus();
+        menuManager.hideAllMenus();
         activeColorCircle = pane;
         Color current = getCircleColor(pane);
         if (current == null || current.equals(Color.TRANSPARENT)) {
@@ -982,6 +608,40 @@ public class MainController {
         delay.play();
     }
 
+    private void growGrid() {
+        if (gridManager.incrementGridSize()) {
+            onGridSizeChanged();
+        }
+    }
+
+    private void shrinkGrid() {
+        if (gridManager.decrementGridSize()) {
+            onGridSizeChanged();
+        }
+    }
+
+    private void onGridSizeChanged() {
+        if (gridSizeLabel != null) {
+            gridSizeLabel.setText(gridManager.getGridSize() + " x " + gridManager.getGridSize());
+        }
+        drawGrid();
+        drawStitches();
+    }
+
+    /**
+     * Increases the grid size by the specified step (GRID_STEP)
+     */
+    public void incrementGridSize() {
+        updateGridSize(GRID_STEP);
+    }
+
+    /**
+     * Reduces the grid size by the specified step (GRID_STEP)
+     */
+    public void decrementGridSize() {
+        updateGridSize(-GRID_STEP);
+    }
+
     private void updateGridSize(int delta) {
         if (gridManager.updateGridSize(delta)) {
             if (gridSizeLabel != null) {
@@ -1012,222 +672,89 @@ public class MainController {
         resetStitches();
     }
 
-    private void saveProject() {
-        String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
-                             ? projectNameField.getText().trim()
-                             : "project";
-
-        Map<String, Object> projectData = new HashMap<>();
-        projectData.put("gridSize", gridManager.getGridSize());
-
-        projectData.put("stitches", gridManager.getStitchesAsList(this::toRgba));
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(projectData);
-
-        try {
-            File dir = new File("src/main/resources/templates");
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-            File file = new File(dir, projectName + ".json");
-            try (FileWriter writer = new FileWriter(file)) {
-                writer.write(json);
-            }
-            System.out.println("Auto-saved project to: " + file.getAbsolutePath());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void saveProjectAsJson() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save Project JSON");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
-
-        String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
-                             ? projectNameField.getText().trim()
-                             : "untitled";
-        fileChooser.setInitialFileName(projectName + ".json");
-
-        File file = fileChooser.showSaveDialog(mainApplicationLayout.getScene().getWindow());
-        if (file != null) {
-            Map<String, Object> projectData = new HashMap<>();
-            projectData.put("gridSize", gridManager.getGridSize());
-
-            projectData.put("stitches", gridManager.getStitchesAsList(this::toRgba));
-
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            try (FileWriter writer = new FileWriter(file)) {
-                writer.write(gson.toJson(projectData));
-                System.out.println("Manually saved project JSON to: " + file.getAbsolutePath());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void saveProjectAsImage(String format, boolean isTransparentBg) {
-        if (mainCanvasView == null) return;
-
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Export Image as " + format.toUpperCase());
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(format.toUpperCase() + " Image", "*." + format));
-
-        String projectName = (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
-                             ? projectNameField.getText().trim()
-                             : "untitled";
-        fileChooser.setInitialFileName(projectName + "." + format);
-
-        File file = fileChooser.showSaveDialog(mainApplicationLayout.getScene().getWindow());
-        if (file != null) {
-            boolean prevVertical = isVerticalSymmetryActive;
-            boolean prevHorizontal = isHorizontalSymmetryActive;
-            isVerticalSymmetryActive = false;
-            isHorizontalSymmetryActive = false;
-            drawGrid();
-
-            String originalStyle = mainCanvasView.getStyle();
-            boolean originalGridVisible = gridCanvas.isVisible();
-
-            if (isTransparentBg) {
-                mainCanvasView.setStyle("-fx-background-color: transparent; -fx-border-width: 0; -fx-effect: none;");
-                gridCanvas.setVisible(false);
-            }
-
-            SnapshotParameters params = new SnapshotParameters();
-            params.setFill(Color.TRANSPARENT);
-            WritableImage snapshot = mainCanvasView.snapshot(params, null);
-
-            if (isTransparentBg) {
-                mainCanvasView.setStyle(originalStyle != null ? originalStyle : "");
-                gridCanvas.setVisible(originalGridVisible);
-            }
-
-            isVerticalSymmetryActive = prevVertical;
-            isHorizontalSymmetryActive = prevHorizontal;
-            drawGrid();
-
-            BufferedImage bufferedImage = SwingFXUtils.fromFXImage(snapshot, null);
-
-            // For formats like JPG that don't support alpha, we might need a background.
-            if (format.equalsIgnoreCase("jpg") || format.equalsIgnoreCase("jpeg")) {
-                BufferedImage jpgImage = new BufferedImage(
-                    bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_INT_RGB);
-                java.awt.Graphics2D g2d = jpgImage.createGraphics();
-                g2d.setColor(java.awt.Color.WHITE);
-                g2d.fillRect(0, 0, jpgImage.getWidth(), jpgImage.getHeight());
-                g2d.drawImage(bufferedImage, 0, 0, null);
-                g2d.dispose();
-                bufferedImage = jpgImage;
-            }
-
-            try {
-                ImageIO.write(bufferedImage, format, file);
-                System.out.println("Exported Image to: " + file.getAbsolutePath());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    private String getProjectName() {
+        return (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
+                ? projectNameField.getText().trim()
+                : "project";
     }
 
     private void openProjectFromFileChooser() {
-        javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
-        fileChooser.setTitle("Open Project");
-        File initialDir = new File("src/main/resources/templates");
-        if (initialDir.exists()) {
-            fileChooser.setInitialDirectory(initialDir);
-        }
-        fileChooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("JSON Files", "*.json"));
-
-        File selectedFile = fileChooser.showOpenDialog(mainApplicationLayout.getScene().getWindow());
+        File selectedFile = projectService.chooseProjectFile(mainApplicationLayout.getScene().getWindow());
         if (selectedFile != null) {
             loadProjectFromFile(selectedFile);
         }
     }
 
     private void loadProjectFromFile(File selectedFile) {
-        try {
-            String content = new String(Files.readAllBytes(selectedFile.toPath()));
-            Gson gson = new Gson();
-            Map<String, Object> projectData = gson.fromJson(content, Map.class);
+        ProjectData data = projectService.loadProjectFromFile(selectedFile);
+        if (data == null) return;
 
-            if (projectData.containsKey("gridSize")) {
-                int loadedSize = ((Double) projectData.get("gridSize")).intValue();
-                gridManager.setGridSize(loadedSize);
-
-                if (gridSizeLabel != null) {
-                    gridSizeLabel.setText(gridManager.getGridSize() + " x " + gridManager.getGridSize());
-                }
-            }
-
-            resetStitches();
-
-            if (projectData.containsKey("stitches")) {
-                List<Map<String, Object>> stitches = (List<Map<String, Object>>) projectData.get("stitches");
-                for (Map<String, Object> stitch : stitches) {
-                    int r = ((Double) stitch.get("row")).intValue();
-                    int c = ((Double) stitch.get("col")).intValue();
-                    String colorStr = (String) stitch.get("color");
-
-                    if (gridManager.isValidCoordinate(r, c) && colorStr != null) {
-                        gridManager.setStitchColor(r, c, parseRgba(colorStr));
-                    }
-                }
-            }
-
-            String name = selectedFile.getName();
-            if (name.endsWith(".json")) {
-                name = name.substring(0, name.length() - 5);
-            }
-            if (projectNameField != null) {
-                projectNameField.setText(name);
-            }
-
-            if (createMenu != null) {
-                createMenu.setManaged(false);
-                createMenu.setVisible(false);
-            }
-
-            drawGrid();
-            drawStitches();
-            System.out.println("Opened project from: " + selectedFile.getAbsolutePath());
-        } catch (Exception e) {
-            e.printStackTrace();
+        gridManager.setGridSize(data.getGridSize());
+        if (gridSizeLabel != null) {
+            gridSizeLabel.setText(gridManager.getGridSize() + " x " + gridManager.getGridSize());
         }
+
+        resetStitches();
+
+        for (ProjectData.StitchData stitch : data.getStitches()) {
+            if (gridManager.isValidCoordinate(stitch.row(), stitch.col()) && stitch.color() != null) {
+                gridManager.setStitchColor(stitch.row(), stitch.col(), stitch.color());
+            }
+        }
+
+        if (projectNameField != null) {
+            projectNameField.setText(data.getProjectName());
+        }
+
+        menuManager.hideCreateMenu();
+
+        drawGrid();
+        drawStitches();
     }
 
-    private Color parseRgba(String rgba) {
-        if (rgba == null || rgba.isEmpty()) return Color.TRANSPARENT;
-        if (rgba.startsWith("rgba(")) {
-            String inner = rgba.substring(5, rgba.length() - 1);
-            String[] parts = inner.split(",");
-            if (parts.length >= 4) {
-                try {
-                    int r = Integer.parseInt(parts[0].trim());
-                    int g = Integer.parseInt(parts[1].trim());
-                    int b = Integer.parseInt(parts[2].trim());
-                    double a = Double.parseDouble(parts[3].trim());
-                    return Color.rgb(r, g, b, a);
-                } catch (NumberFormatException e) {
-                    // Fallback to web
-                }
-            }
+    private void handleImageExport(String format, boolean isTransparentBg) {
+        if (mainCanvasView == null) return;
+
+        File file = projectService.chooseImageExportFile(format, getProjectName(),
+                mainApplicationLayout.getScene().getWindow());
+        if (file == null) return;
+
+        // Temporarily disable symmetry lines for clean export
+        boolean prevVertical = isVerticalSymmetryActive;
+        boolean prevHorizontal = isHorizontalSymmetryActive;
+        isVerticalSymmetryActive = false;
+        isHorizontalSymmetryActive = false;
+        drawGrid();
+
+        String originalStyle = mainCanvasView.getStyle();
+        boolean originalGridVisible = gridCanvas.isVisible();
+
+        if (isTransparentBg) {
+            mainCanvasView.setStyle("-fx-background-color: transparent; -fx-border-width: 0; -fx-effect: none;");
+            gridCanvas.setVisible(false);
         }
-        try {
-            return Color.web(rgba);
-        } catch (Exception e) {
-            return Color.TRANSPARENT;
+
+        SnapshotParameters params = new SnapshotParameters();
+        params.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        WritableImage snapshot = mainCanvasView.snapshot(params, null);
+
+        if (isTransparentBg) {
+            mainCanvasView.setStyle(originalStyle != null ? originalStyle : "");
+            gridCanvas.setVisible(originalGridVisible);
         }
+
+        isVerticalSymmetryActive = prevVertical;
+        isHorizontalSymmetryActive = prevHorizontal;
+        drawGrid();
+
+        // Delegate image writing to ProjectService
+        projectService.exportImage(snapshot, format, file);
     }
 
     private void showCreateMenu() {
-        hideAllMenus();
+        menuManager.hideAllMenus();
         clearCanvas();
-        if (createMenu != null) {
-            createMenu.setManaged(true);
-            createMenu.setVisible(true);
-        }
+        menuManager.showCreateMenu();
     }
 
     private void toggleEraser() {
@@ -1242,7 +769,7 @@ public class MainController {
     }
 
     private void handleStitchClick(double x, double y) {
-        if (createMenu != null && createMenu.isVisible()) {
+        if (menuManager.isCreateMenuVisible()) {
             return;
         }
         if (stitchCanvas == null) {

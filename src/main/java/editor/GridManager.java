@@ -6,9 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Manages the state, colors, bounds, and symmetry processing of the embroidery grid.
+ */
 public class GridManager {
-    static final int GRID_MIN = 8;
-    static final int GRID_MAX = 96;
+    public static final int GRID_MIN = 8;
+    public static final int GRID_MAX = 96;
     public static final int GRID_STEP = 8;
 
     private int gridSize = 32;
@@ -22,14 +25,17 @@ public class GridManager {
         return gridSize;
     }
 
+    /**
+     * Resets the 2D matrix structure to match the current grid size configuration.
+     */
     public void resetStitches() {
         this.stitchColors = new Color[gridSize][gridSize];
     }
 
     /**
-     * Resizes the grid with bounds checking (GRID_MIN <= size <= GRID_MAX)
-     * @param delta is the resizing step (e.g., +8 or -8)
-     * @return true if the size has changed, false otherwise
+     * Updates the grid size incrementally with strict boundary enforcement.
+     * @param delta value to change the size by (+8 or -8)
+     * @return true if changed successfully, false if hitting boundaries
      */
     public boolean updateGridSize(int delta) {
         int next = Math.max(GRID_MIN, Math.min(GRID_MAX, gridSize + delta));
@@ -41,6 +47,26 @@ public class GridManager {
         return true;
     }
 
+    /**
+     * Increases the grid size by one standard step configuration block.
+     * @return true if successful
+     */
+    public boolean incrementGridSize() {
+        return updateGridSize(GRID_STEP);
+    }
+
+    /**
+     * Decreases the grid size by one standard step configuration block.
+     * @return true if successful
+     */
+    public boolean decrementGridSize() {
+        return updateGridSize(-GRID_STEP);
+    }
+
+    /**
+     * Updates grid layout to specific absolute dimension sizes.
+     * @param size requested matrix width/height bounds
+     */
     public void setGridSize(int size) {
         this.gridSize = Math.max(GRID_MIN, Math.min(GRID_MAX, size));
         resetStitches();
@@ -63,6 +89,10 @@ public class GridManager {
         return row >= 0 && row < gridSize && col >= 0 && col < gridSize;
     }
 
+    /**
+     * Scans the board state structure to verify if any visual cell is filled.
+     * @return true if completely white space layout context
+     */
     public boolean isCanvasClear() {
         if (stitchColors == null) return true;
         for (int r = 0; r < gridSize; r++) {
@@ -74,8 +104,7 @@ public class GridManager {
     }
 
     /**
-     * Applies changes to the cell taking into account active symmetry modes.
-     * Covers both color drawing and erasing (if targetColor == null).
+     * Commits pixel structural colors mapping using specific mirroring symmetry modes.
      */
     public void applyStitchWithSymmetry(int row, int col, Color targetColor, boolean verticalSym, boolean horizontalSym) {
         if (!isValidCoordinate(row, col)) {
@@ -96,7 +125,7 @@ public class GridManager {
     }
 
     /**
-     * Export current stitches to a List of structures for subsequent saving as JSON.
+     * Extracts active values to key-value maps compatible with standard JSON formats.
      */
     public List<Map<String, Object>> getStitchesAsList(java.util.function.Function<Color, String> colorSerializer) {
         List<Map<String, Object>> stitches = new ArrayList<>();
