@@ -57,6 +57,32 @@ public class ProjectService {
     }
 
     /**
+     * Prepares the start template by copying mykhailo-sample.json to start-template.json.
+     * This ensures the original sample file is never modified by the user.
+     *
+     * @return the start-template.json File, or null if preparation fails
+     */
+    public File prepareStartTemplate() {
+        File dir = new File(TEMPLATES_DIR);
+        File source = new File(dir, "mykhailo-sample.json");
+        File target = new File(dir, "start-template.json");
+
+        if (!source.exists()) {
+            System.err.println("Sample template not found: " + source.getAbsolutePath());
+            return null;
+        }
+
+        try {
+            Files.copy(source.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Prepared start template: " + target.getAbsolutePath());
+            return target;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
      * Saves the project as a JSON file via a FileChooser dialog.
      *
      * @param projectName the default file name

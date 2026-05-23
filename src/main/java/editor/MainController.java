@@ -139,8 +139,7 @@ public class MainController {
         if (mainCanvasView != null && canvasContainer != null) {
             var squareSize = Bindings.min(
                     canvasContainer.widthProperty().subtract(40),
-                    canvasContainer.heightProperty().subtract(40)
-            );
+                    canvasContainer.heightProperty().subtract(40));
             mainCanvasView.minWidthProperty().bind(squareSize);
             mainCanvasView.minHeightProperty().bind(squareSize);
             mainCanvasView.prefWidthProperty().bind(squareSize);
@@ -156,8 +155,6 @@ public class MainController {
             gridCanvas.heightProperty().addListener((obs, oldVal, newVal) -> drawGrid());
             drawGrid();
         }
-
-
 
         navManager.setupButtonHoverAnimation(horizontalSymmetryBox);
         navManager.setupButtonHoverAnimation(verticalSymmetryBox);
@@ -191,9 +188,7 @@ public class MainController {
             createGridBtn.disableProperty().bind(
                     Bindings.createBooleanBinding(
                             () -> projectNameField.getText() == null || projectNameField.getText().trim().isEmpty(),
-                            projectNameField.textProperty()
-                    )
-            );
+                            projectNameField.textProperty()));
             projectNameField.textProperty().addListener((obs, oldVal, newVal) -> {
                 projectNameField.getStyleClass().remove("input-error");
             });
@@ -250,7 +245,8 @@ public class MainController {
 
         if (clearCanvasBtn != null) {
             clearCanvasBtn.setOnMouseClicked(e -> {
-                if (stitchHandler != null) stitchHandler.clearCanvas();
+                if (stitchHandler != null)
+                    stitchHandler.clearCanvas();
             });
         }
 
@@ -261,33 +257,34 @@ public class MainController {
         paletteManager = new ThreadPaletteManager(mainApplicationLayout);
         paletteManager.initColorPicker();
 
-        menuManager = new MenuManager(mainCanvasView, createMenu, paletteManager.getColorPicker(), new MenuManager.MenuCallbacks() {
-            @Override
-            public void onSaveAsJson() {
-                projectService.saveProjectAsJson(getProjectName(), gridManager,
-                        mainApplicationLayout.getScene().getWindow());
-            }
+        menuManager = new MenuManager(mainCanvasView, createMenu, paletteManager.getColorPicker(),
+                new MenuManager.MenuCallbacks() {
+                    @Override
+                    public void onSaveAsJson() {
+                        projectService.saveProjectAsJson(getProjectName(), gridManager,
+                                mainApplicationLayout.getScene().getWindow());
+                    }
 
-            @Override
-            public void onExportImage(String format, boolean transparentBg) {
-                handleImageExport(format, transparentBg);
-            }
+                    @Override
+                    public void onExportImage(String format, boolean transparentBg) {
+                        handleImageExport(format, transparentBg);
+                    }
 
-            @Override
-            public void onBrowseOpenFile() {
-                openProjectFromFileChooser();
-            }
+                    @Override
+                    public void onBrowseOpenFile() {
+                        openProjectFromFileChooser();
+                    }
 
-            @Override
-            public void onLoadRecentProject(File file) {
-                loadProjectFromFile(file);
-            }
+                    @Override
+                    public void onLoadRecentProject(File file) {
+                        loadProjectFromFile(file);
+                    }
 
-            @Override
-            public void onHideAllMenus() {
-                menuManager.hideAllMenus();
-            }
-        });
+                    @Override
+                    public void onHideAllMenus() {
+                        menuManager.hideAllMenus();
+                    }
+                });
 
         paletteManager.setHideAllMenusCallback(() -> menuManager.hideAllMenus());
 
@@ -312,18 +309,16 @@ public class MainController {
                 () -> isVerticalSymmetryActive,
                 () -> isHorizontalSymmetryActive,
                 () -> menuManager != null && menuManager.isCreateMenuVisible(),
-                this::drawStitches
-        );
+                this::drawStitches);
         stitchHandler.setupStitchLayer(stitchCanvas, mainCanvasView);
         stitchHandler.clearCanvas();
 
         Timeline autoSaveTimeline = new Timeline(
-            new KeyFrame(Duration.seconds(10), e -> {
-                if (!isCanvasClear()) {
-                    autoSaveProject();
-                }
-            })
-        );
+                new KeyFrame(Duration.seconds(10), e -> {
+                    if (!isCanvasClear()) {
+                        autoSaveProject();
+                    }
+                }));
         autoSaveTimeline.setCycleCount(Timeline.INDEFINITE);
         autoSaveTimeline.play();
 
@@ -335,6 +330,17 @@ public class MainController {
             renderEngine.drawGrid(isVerticalSymmetryActive, isHorizontalSymmetryActive);
             renderEngine.drawStitches();
         }
+
+        // Load the start template
+        loadStartTemplate();
+    }
+
+    private void loadStartTemplate() {
+        File startTemplate = projectService.prepareStartTemplate();
+        if (startTemplate != null) {
+            loadProjectFromFile(startTemplate);
+        }
+        menuManager.hideCreateMenu();
     }
 
     private void drawGrid() {
@@ -374,9 +380,8 @@ public class MainController {
     private void simulateLoading() {
         if (loadingBar != null) {
             Timeline timeline = new Timeline(
-                new KeyFrame(Duration.ZERO, new KeyValue(loadingBar.progressProperty(), 0.0)),
-                new KeyFrame(Duration.seconds(5), new KeyValue(loadingBar.progressProperty(), 1.0))
-            );
+                    new KeyFrame(Duration.ZERO, new KeyValue(loadingBar.progressProperty(), 0.0)),
+                    new KeyFrame(Duration.seconds(5), new KeyValue(loadingBar.progressProperty(), 1.0)));
             timeline.play();
         }
 
@@ -397,12 +402,11 @@ public class MainController {
         }
     }
 
-
-
     private String getProjectName() {
-        return (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
-                ? projectNameField.getText().trim()
-                : "project";
+        return (projectNameField != null && projectNameField.getText() != null
+                && !projectNameField.getText().trim().isEmpty())
+                        ? projectNameField.getText().trim()
+                        : "project";
     }
 
     private void openProjectFromFileChooser() {
@@ -414,7 +418,8 @@ public class MainController {
 
     private void loadProjectFromFile(File selectedFile) {
         ProjectData data = projectService.loadProjectFromFile(selectedFile);
-        if (data == null) return;
+        if (data == null)
+            return;
 
         gridManager.setGridSize(data.getGridSize());
         if (gridSizeLabel != null) {
@@ -442,11 +447,13 @@ public class MainController {
     }
 
     private void handleImageExport(String format, boolean isTransparentBg) {
-        if (mainCanvasView == null) return;
+        if (mainCanvasView == null)
+            return;
 
         File file = projectService.chooseImageExportFile(format, getProjectName(),
                 mainApplicationLayout.getScene().getWindow());
-        if (file == null) return;
+        if (file == null)
+            return;
 
         // Temporarily disable symmetry lines for clean export
         boolean prevVertical = isVerticalSymmetryActive;
@@ -491,6 +498,5 @@ public class MainController {
             stitchHandler.toggleEraser(eraserBtn);
         }
     }
-
 
 }
