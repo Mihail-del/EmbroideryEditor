@@ -477,9 +477,10 @@
     -fx-min-width: 350px;
     -fx-max-height: 350px;
     -fx-min-height: 350px;
-    -fx-background-image: url("/images/loading_img.png");
-    -fx-background-size: cover;
-    -fx-background-color: transparent;
+    -fx-background-image: url("/images/loading_animation.gif");
+    -fx-background-size: contain;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 20, 0, 0, 5);
 }
 

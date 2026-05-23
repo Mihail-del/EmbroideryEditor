@@ -409,11 +409,11 @@ public class MainController {
         if (loadingBar != null) {
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.ZERO, new KeyValue(loadingBar.progressProperty(), 0.0)),
-                    new KeyFrame(Duration.seconds(5), new KeyValue(loadingBar.progressProperty(), 1.0)));
+                    new KeyFrame(Duration.seconds(3), new KeyValue(loadingBar.progressProperty(), 1.0)));
             timeline.play();
         }
 
-        PauseTransition delay = new PauseTransition(Duration.seconds(0));
+        PauseTransition delay = new PauseTransition(Duration.seconds(3));
         delay.setOnFinished(event -> {
             mainApplicationLayout.getChildren().remove(loadingScreen);
         });
