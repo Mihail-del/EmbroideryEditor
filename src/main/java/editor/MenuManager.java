@@ -300,10 +300,10 @@ public class MenuManager {
                 "Vyshyvanka Editor: User Guide\n\n" +
 
                         "1. Basic Drawing & Tools\n" +
-                        "• Drawing Stitches: Left-click or click-and-drag to place cross-stitches.\n" +
+                        "• Drawing Stitches: Left-click to place cross-stitches.\n" +
                         "• Eraser: Toggle Eraser mode from the bottom toolbar to remove stitches.\n" +
                         "• Clear Canvas: Instantly wipes the entire board clean.\n" +
-                        "• Animate: Plays a step-by-step visual animation of your embroidery process.\n\n" +
+                        "• Animate: Plays a radial visual animation of your embroidery process.\n\n" +
 
                         "2. Thread Palette & Color Management\n" +
                         "• Select a Color: Left-click any filled color circle to make it active.\n" +
@@ -311,16 +311,20 @@ public class MenuManager {
                         "• Replace a Color: Right-click an active color to replace it.\n\n" +
 
                         "3. Symmetry Controls\n" +
-                        "• Vertical/Horizontal: Mirrors your drawing across the center guide lines.\n" +
+                        "• Vertical/Horizontal: Mirrors your next drawing across the center guide lines.\n" +
                         "• Full Symmetry: Turn on both to mirror your stitches into all four quadrants.\n\n" +
 
-                        "4. Project Management\n" +
+                        "4. Duplicate Canvas\n" +
+                        "• Left/Right: Mirrors your existed drawing across the vertical center with preview.\n" +
+                        "• Up/Down: Mirrors your existed drawing across the horizontal center with preview.\n\n" +
+
+                        "5. Project Management\n" +
                         "• Create: Start a new workspace and set a custom grid size (8x8 to 96x96).\n" +
                         "• Save: Export as Image (.PNG, .JPG, .GIF) or save as Template (.JSON).\n" +
                         "• Open: Load a previously saved .JSON file or pick from \"Recent Projects\"."
         );
         infoText.getStyleClass().add("warning-label");
-        infoText.setStyle("-fx-text-alignment: left; -fx-font-size: 13px; -fx-line-spacing: 3px; -fx-wrap-text: true;");
+        infoText.setStyle("-fx-text-alignment: left; -fx-font-size: 13px; -fx-line-spacing: 3px; -fx-wrap-text: true; -fx-padding: 20px");
         ScrollPane scrollPane = new ScrollPane(infoText);
         scrollPane.setFitToWidth(true);
         scrollPane.getStyleClass().add("styled-scroll-pane");
