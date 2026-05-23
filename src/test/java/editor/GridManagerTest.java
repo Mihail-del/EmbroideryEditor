@@ -85,7 +85,7 @@ public class GridManagerTest {
         assertEquals(targetColor, gridManager.getStitchColor(4, 4));
         assertEquals(targetColor, gridManager.getStitchColor(4, (size - 1) - 4));
         assertEquals(targetColor, gridManager.getStitchColor((size - 1) - 4, 4));
-        assertEquals(targetColor, targetColor, gridManager.getStitchColor((size - 1) - 4, (size - 1) - 4));
+        assertEquals(targetColor, gridManager.getStitchColor((size - 1) - 4, (size - 1) - 4));
     }
 
     @Test

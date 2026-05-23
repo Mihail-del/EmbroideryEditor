@@ -164,6 +164,9 @@ public class ProjectService {
      * @return a ProjectData object, or null if loading fails
      */
     public ProjectData loadProjectFromFile(File file) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
         try {
             String content = new String(Files.readAllBytes(file.toPath()));
             Gson gson = new Gson();
