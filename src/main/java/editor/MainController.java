@@ -56,6 +56,9 @@ public class MainController {
     private Label eraserBtn;
 
     @FXML
+    private Label animateBtn;
+
+    @FXML
     private StackPane canvasContainer;
 
     @FXML
@@ -138,6 +141,7 @@ public class MainController {
     private final NavigationManager navManager = new NavigationManager();
     private StitchInteractionHandler stitchHandler;
     private NotificationManager notificationManager;
+    private StitchAnimator stitchAnimator;
 
     private boolean isVerticalSymmetryActive = false;
     private boolean isHorizontalSymmetryActive = false;
@@ -343,9 +347,16 @@ public class MainController {
 
         this.renderEngine = new RenderEngine(gridCanvas, stitchCanvas, gridManager);
 
+        this.stitchAnimator = new StitchAnimator();
+        renderEngine.setAnimator(stitchAnimator);
+
         if (renderEngine != null) {
             renderEngine.drawGrid(isVerticalSymmetryActive, isHorizontalSymmetryActive);
             renderEngine.drawStitches();
+        }
+
+        if (animateBtn != null) {
+            animateBtn.setOnMouseClicked(e -> toggleAnimation());
         }
 
         // Load the start template
@@ -513,6 +524,36 @@ public class MainController {
     private void toggleEraser() {
         if (stitchHandler != null) {
             stitchHandler.toggleEraser(eraserBtn);
+        }
+    }
+
+    private void toggleAnimation() {
+        if (stitchAnimator == null || renderEngine == null) return;
+
+        if (stitchAnimator.isAnimating()) {
+            stitchAnimator.stop();
+            drawStitches();
+            setAnimateButtonActive(false);
+        } else {
+            if (isCanvasClear()) return;
+            setAnimateButtonActive(true);
+            stitchAnimator.play(gridManager, this::drawStitches, () -> {
+                setAnimateButtonActive(false);
+                drawStitches();
+            });
+        }
+    }
+
+    private void setAnimateButtonActive(boolean active) {
+        if (animateBtn == null) return;
+        if (active) {
+            animateBtn.setText("Stop");
+            if (!animateBtn.getStyleClass().contains("animate-btn-active")) {
+                animateBtn.getStyleClass().add("animate-btn-active");
+            }
+        } else {
+            animateBtn.setText("Animate");
+            animateBtn.getStyleClass().remove("animate-btn-active");
         }
     }
 
