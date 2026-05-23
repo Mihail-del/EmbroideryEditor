@@ -11,7 +11,10 @@
     <HBox fx:id="mainWorkspace">
 
         <VBox spacing="30" styleClass="left-sidebar">
-            <Label styleClass="app-title" text="Vyshyvanka Editor" />
+            <VBox spacing="8">
+                <Label styleClass="app-title" text="Vyshyvanka Editor" />
+                <Label styleClass="author-title" text="Created by Pulov Mykhailo" />
+            </VBox>
             <VBox styleClass="symmetry-controls" spacing="10">
                 <Label styleClass="section-title" text="Symmetry Controls" />
 

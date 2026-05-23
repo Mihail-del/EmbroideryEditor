@@ -67,6 +67,15 @@
     -fx-letter-spacing: 1px;
 }
 
+.author-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: linear-gradient(to bottom left, -fx-bg-light, -fx-bg-light-alt);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0.5, 0, 2);
+    -fx-padding: 0;
+    -fx-letter-spacing: 1px;
+}
+
 .nav-link {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
