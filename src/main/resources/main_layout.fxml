@@ -39,6 +39,42 @@
                 </HBox>
             </VBox>
 
+            <VBox styleClass="symmetry-controls" spacing="10">
+                <Label styleClass="section-title" text="Dublicate canvas" />
+
+                <HBox fx:id="duplicateLeftBtn" styleClass="symmetry-button" spacing="10" alignment="CENTER_LEFT">
+                    <Label styleClass="symmetry-text" text="Left" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
+                        <image><Image url="@/icons/left.png"/></image>
+                    </ImageView>
+                </HBox>
+
+                <HBox fx:id="duplicateRightBtn" styleClass="symmetry-button" spacing="10" alignment="CENTER_LEFT">
+                    <Label styleClass="symmetry-text" text="Right" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
+                        <image><Image url="@/icons/right.png"/></image>
+                    </ImageView>
+                </HBox>
+
+                <HBox fx:id="duplicateUpBtn" styleClass="symmetry-button" spacing="10" alignment="CENTER_LEFT">
+                    <Label styleClass="symmetry-text" text="Up" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
+                        <image><Image url="@/icons/up.png"/></image>
+                    </ImageView>
+                </HBox>
+
+                <HBox fx:id="duplicateDownBtn" styleClass="symmetry-button" spacing="10" alignment="CENTER_LEFT">
+                    <Label styleClass="symmetry-text" text="Down" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <ImageView fitWidth="16" fitHeight="16" preserveRatio="true">
+                        <image><Image url="@/icons/down.png"/></image>
+                    </ImageView>
+                </HBox>
+            </VBox>
+
             <VBox styleClass="active-thread" spacing="12">
                 <Label styleClass="section-title" text="Active Thread" />
                 <VBox spacing="10" alignment="CENTER">

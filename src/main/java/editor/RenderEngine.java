@@ -24,6 +24,8 @@ public class RenderEngine {
     private Image crossImage;
     private final Map<String, Image> tintCache = new HashMap<>();
 
+    private String previewDirection = null;
+
     private static final double DOT_RADIUS = 1.5;
     private static final double GRID_PADDING = 12.0;
     private static final Color GRID_DOT_COLOR = Color.web("#97958C", 0.6);
@@ -33,6 +35,14 @@ public class RenderEngine {
         this.stitchCanvas = stitchCanvas;
         this.gridManager = gridManager;
         loadCrossImage();
+    }
+
+    public void setPreviewDirection(String direction) {
+        this.previewDirection = direction;
+    }
+
+    public String getPreviewDirection() {
+        return previewDirection;
     }
 
     private void loadCrossImage() {
@@ -114,6 +124,24 @@ public class RenderEngine {
         for (int row = 0; row < gridSize; row++) {
             for (int col = 0; col < gridSize; col++) {
                 Color color = gridManager.getStitchColor(row, col);
+
+                if (previewDirection != null) {
+                    int half = gridSize / 2;
+                    if (previewDirection.equals("left") && col < half) {
+                        Color srcColor = gridManager.getStitchColor(row, col + half);
+                        color = (srcColor != null) ? new Color(srcColor.getRed(), srcColor.getGreen(), srcColor.getBlue(), 0.5) : null;
+                    } else if (previewDirection.equals("right") && col >= half) {
+                        Color srcColor = gridManager.getStitchColor(row, col - half);
+                        color = (srcColor != null) ? new Color(srcColor.getRed(), srcColor.getGreen(), srcColor.getBlue(), 0.5) : null;
+                    } else if (previewDirection.equals("up") && row < half) {
+                        Color srcColor = gridManager.getStitchColor(row + half, col);
+                        color = (srcColor != null) ? new Color(srcColor.getRed(), srcColor.getGreen(), srcColor.getBlue(), 0.5) : null;
+                    } else if (previewDirection.equals("down") && row >= half) {
+                        Color srcColor = gridManager.getStitchColor(row - half, col);
+                        color = (srcColor != null) ? new Color(srcColor.getRed(), srcColor.getGreen(), srcColor.getBlue(), 0.5) : null;
+                    }
+                }
+
                 if (color == null) continue;
 
                 Image paintImage = getTintedImage(color);
@@ -152,7 +180,7 @@ public class RenderEngine {
                     writer.setColor(x, y, Color.TRANSPARENT);
                     continue;
                 }
-                writer.setColor(x, y, new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha));
+                writer.setColor(x, y, new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha * color.getOpacity()));
             }
         }
 
