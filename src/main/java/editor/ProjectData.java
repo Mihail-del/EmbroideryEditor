@@ -12,7 +12,21 @@ public class ProjectData {
     /**
      * Represents a single stitch entry with its grid position and color.
      */
-    public record StitchData(int row, int col, Color color) {}
+    public static class StitchData {
+        private final int row;
+        private final int col;
+        private final Color color;
+
+        public StitchData(int row, int col, Color color) {
+            this.row = row;
+            this.col = col;
+            this.color = color;
+        }
+
+        public int row() { return row; }
+        public int col() { return col; }
+        public Color color() { return color; }
+    }
 
     private final int gridSize;
     private final String projectName;
