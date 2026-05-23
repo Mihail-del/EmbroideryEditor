@@ -170,10 +170,6 @@ public class MainController {
 
         navManager.setupButtonHoverAnimation(horizontalSymmetryBox);
         navManager.setupButtonHoverAnimation(verticalSymmetryBox);
-        navManager.setupButtonHoverAnimation(duplicateLeftBtn);
-        navManager.setupButtonHoverAnimation(duplicateRightBtn);
-        navManager.setupButtonHoverAnimation(duplicateUpBtn);
-        navManager.setupButtonHoverAnimation(duplicateDownBtn);
 
         if (verticalSymmetryBox != null) {
             verticalSymmetryBox.setOnMouseClicked(e -> {
@@ -189,33 +185,10 @@ public class MainController {
             });
         }
 
-        if (duplicateLeftBtn != null) {
-            duplicateLeftBtn.setOnMouseClicked(e -> {
-                gridManager.duplicateLeft();
-                drawStitches();
-            });
-        }
-
-        if (duplicateRightBtn != null) {
-            duplicateRightBtn.setOnMouseClicked(e -> {
-                gridManager.duplicateRight();
-                drawStitches();
-            });
-        }
-
-        if (duplicateUpBtn != null) {
-            duplicateUpBtn.setOnMouseClicked(e -> {
-                gridManager.duplicateUp();
-                drawStitches();
-            });
-        }
-
-        if (duplicateDownBtn != null) {
-            duplicateDownBtn.setOnMouseClicked(e -> {
-                gridManager.duplicateDown();
-                drawStitches();
-            });
-        }
+        setupDuplicateButton(duplicateLeftBtn, "left");
+        setupDuplicateButton(duplicateRightBtn, "right");
+        setupDuplicateButton(duplicateUpBtn, "up");
+        setupDuplicateButton(duplicateDownBtn, "down");
 
         if (closeCreateMenuBtn != null) {
             closeCreateMenuBtn.setOnMouseClicked(e -> menuManager.hideCreateMenu());
@@ -283,10 +256,6 @@ public class MainController {
 
         navManager.setupButtonHoverAnimation(horizontalSymmetryBox);
         navManager.setupButtonHoverAnimation(verticalSymmetryBox);
-        navManager.setupButtonHoverAnimation(duplicateLeftBtn);
-        navManager.setupButtonHoverAnimation(duplicateRightBtn);
-        navManager.setupButtonHoverAnimation(duplicateUpBtn);
-        navManager.setupButtonHoverAnimation(duplicateDownBtn);
 
         navManager.setupButtonHoverAnimation(gridMinusBtn);
         navManager.setupButtonHoverAnimation(gridPlusBtn);
@@ -545,6 +514,48 @@ public class MainController {
         if (stitchHandler != null) {
             stitchHandler.toggleEraser(eraserBtn);
         }
+    }
+
+    /**
+     * Sets up a duplicate direction button with:
+     * - Hover background animation (matching symmetry button style)
+     * - Live semi-transparent preview of the duplication result
+     * - Click to permanently apply the duplication
+     */
+    private void setupDuplicateButton(HBox btn, String direction) {
+        if (btn == null) return;
+
+        final String HOVER_STYLE = "-fx-background-color: #1f1f1e; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 2);";
+        final String IDLE_STYLE  = "-fx-background-color: #252524;";
+
+        btn.setOnMouseEntered(e -> {
+            btn.setStyle(HOVER_STYLE);
+            if (renderEngine != null) {
+                renderEngine.setPreviewDirection(direction);
+                drawStitches();
+            }
+        });
+
+        btn.setOnMouseExited(e -> {
+            btn.setStyle(IDLE_STYLE);
+            if (renderEngine != null) {
+                renderEngine.setPreviewDirection(null);
+                drawStitches();
+            }
+        });
+
+        btn.setOnMouseClicked(e -> {
+            if (renderEngine != null) {
+                renderEngine.setPreviewDirection(null);
+            }
+            switch (direction) {
+                case "left"  -> gridManager.duplicateLeft();
+                case "right" -> gridManager.duplicateRight();
+                case "up"    -> gridManager.duplicateUp();
+                case "down"  -> gridManager.duplicateDown();
+            }
+            drawStitches();
+        });
     }
 
 }

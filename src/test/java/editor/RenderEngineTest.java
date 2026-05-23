@@ -64,6 +64,27 @@ public class RenderEngineTest {
         });
     }
 
+    @Test
+    public void testPreviewDirectionProperties() {
+        assertNull(renderEngine.getPreviewDirection());
+        renderEngine.setPreviewDirection("left");
+        assertEquals("left", renderEngine.getPreviewDirection());
+        renderEngine.setPreviewDirection(null);
+        assertNull(renderEngine.getPreviewDirection());
+    }
+
+    @Test
+    public void testDrawStitchesWithPreviewDoesNotThrow() {
+        assertDoesNotThrow(() -> {
+            Platform.runLater(() -> {
+                gridManager.setStitchColor(0, 20, javafx.scene.paint.Color.BLUE);
+                renderEngine.setPreviewDirection("left");
+                renderEngine.drawStitches();
+            });
+            waitForFxEvents();
+        });
+    }
+
     /**
      * Helper method for synchronizing the JUnit thread with the JavaFX UI thread
      */
