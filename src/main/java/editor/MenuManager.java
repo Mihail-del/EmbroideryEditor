@@ -120,13 +120,13 @@ public class MenuManager {
         HBox imageBtns = new HBox(15);
         imageBtns.setAlignment(Pos.CENTER);
 
-        CheckBox transparentBgCheckbox = new CheckBox("Transparent Background");
+        CheckBox transparentBgCheckbox = new CheckBox("Transparent bg");
         transparentBgCheckbox.getStyleClass().add("custom-checkbox");
 
-        CheckBox animatedCheckbox = new CheckBox("Animated (GIF only)");
+        CheckBox animatedCheckbox = new CheckBox("Animated");
         animatedCheckbox.getStyleClass().add("custom-checkbox");
 
-        HBox checkboxBox = new HBox(15);
+        HBox checkboxBox = new HBox(25);
         checkboxBox.setAlignment(Pos.CENTER);
         checkboxBox.getChildren().addAll(transparentBgCheckbox, animatedCheckbox);
 

@@ -61,7 +61,7 @@ public class MenuManagerTest {
                 public void onSaveAsJson() { savedAsJson = true; }
 
                 @Override
-                public void onExportImage(String format, boolean transparentBg) { exportedImage = true; }
+                public void onExportImage(String format, boolean transparentBg, boolean animated) { exportedImage = true; }
 
                 @Override
                 public void onBrowseOpenFile() { browsedFile = true; }
