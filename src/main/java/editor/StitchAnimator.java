@@ -14,13 +14,13 @@ import javafx.animation.AnimationTimer;
 public class StitchAnimator {
 
     /** Total wall-clock duration of the entire animation (nanoseconds). */
-    private static final double TOTAL_DURATION_NS = 1.5e9;
+    private static final double TOTAL_DURATION_NS = 10.5e9;
 
     /** How much of the total duration is used to stagger start times. */
     private static final double DELAY_SPREAD_NS = 0.8e9;
 
     /** Duration of an individual cell's fade-in (nanoseconds). */
-    private static final double CELL_FADE_NS = 0.7e9;
+    private static final double CELL_FADE_NS = 3.7e9;
 
     private double[][] opacities;
     private double[][] startDelays;
@@ -35,6 +35,84 @@ public class StitchAnimator {
      */
     public boolean isAnimating() {
         return animating;
+    }
+
+    /**
+     * Initializes the animation state without starting a real-time timer.
+     * Useful for manual frame generation.
+     * 
+     * @param gridManager provides grid size and stitch data
+     */
+    public void setup(GridManager gridManager) {
+        stop();
+
+        int size = gridManager.getGridSize();
+        opacities = new double[size][size];
+        startDelays = new double[size][size];
+
+        double centerRow = (size - 1) / 2.0;
+        double centerCol = (size - 1) / 2.0;
+
+        double maxDist = 0.0;
+        for (int r = 0; r < size; r++) {
+            for (int c = 0; c < size; c++) {
+                if (gridManager.getStitchColor(r, c) != null) {
+                    double dr = r - centerRow;
+                    double dc = c - centerCol;
+                    double dist = Math.sqrt(dr * dr + dc * dc);
+                    maxDist = Math.max(maxDist, dist);
+                }
+            }
+        }
+
+        double effectiveMaxDist = Math.max(maxDist, 1.0);
+        for (int r = 0; r < size; r++) {
+            for (int c = 0; c < size; c++) {
+                double dr = r - centerRow;
+                double dc = c - centerCol;
+                double dist = Math.sqrt(dr * dr + dc * dc);
+                startDelays[r][c] = (dist / effectiveMaxDist) * DELAY_SPREAD_NS;
+                opacities[r][c] = 0.0;
+            }
+        }
+
+        animating = true;
+    }
+
+    /**
+     * Manually step the animation to a specific elapsed time.
+     * 
+     * @param elapsedNs elapsed time in nanoseconds
+     * @return true if the animation is completely finished, false otherwise
+     */
+    public boolean setElapsed(double elapsedNs) {
+        if (!animating || opacities == null)
+            return true;
+
+        boolean allDone = true;
+        for (int r = 0; r < opacities.length; r++) {
+            for (int c = 0; c < opacities[0].length; c++) {
+                double cellElapsed = elapsedNs - startDelays[r][c];
+                if (cellElapsed <= 0) {
+                    opacities[r][c] = 0.0;
+                    allDone = false;
+                } else if (cellElapsed >= CELL_FADE_NS) {
+                    opacities[r][c] = 1.0;
+                } else {
+                    double t = cellElapsed / CELL_FADE_NS;
+                    opacities[r][c] = 1.0 - (1.0 - t) * (1.0 - t);
+                    allDone = false;
+                }
+            }
+        }
+        return allDone || elapsedNs >= TOTAL_DURATION_NS;
+    }
+
+    /**
+     * Gets the total duration of the animation in nanoseconds.
+     */
+    public double getTotalDurationNs() {
+        return TOTAL_DURATION_NS;
     }
 
     /**
@@ -58,47 +136,14 @@ public class StitchAnimator {
      * Starts the radial bloom animation.
      *
      * @param gridManager provides grid size and stitch data
-     * @param onFrame     callback invoked every frame so the render engine can repaint
+     * @param onFrame     callback invoked every frame so the render engine can
+     *                    repaint
      * @param onComplete  callback invoked when the animation finishes naturally
      */
     public void play(GridManager gridManager, Runnable onFrame, Runnable onComplete) {
-        stop();
-
         this.onComplete = onComplete;
+        setup(gridManager);
 
-        int size = gridManager.getGridSize();
-        opacities = new double[size][size];
-        startDelays = new double[size][size];
-
-        double centerRow = (size - 1) / 2.0;
-        double centerCol = (size - 1) / 2.0;
-
-        // Compute max distance among filled cells
-        double maxDist = 0.0;
-        for (int r = 0; r < size; r++) {
-            for (int c = 0; c < size; c++) {
-                if (gridManager.getStitchColor(r, c) != null) {
-                    double dr = r - centerRow;
-                    double dc = c - centerCol;
-                    double dist = Math.sqrt(dr * dr + dc * dc);
-                    maxDist = Math.max(maxDist, dist);
-                }
-            }
-        }
-
-        // Compute per-cell start delay
-        double effectiveMaxDist = Math.max(maxDist, 1.0); // avoid division by zero
-        for (int r = 0; r < size; r++) {
-            for (int c = 0; c < size; c++) {
-                double dr = r - centerRow;
-                double dc = c - centerCol;
-                double dist = Math.sqrt(dr * dr + dc * dc);
-                startDelays[r][c] = (dist / effectiveMaxDist) * DELAY_SPREAD_NS;
-                opacities[r][c] = 0.0;
-            }
-        }
-
-        animating = true;
         startTimeNs = -1;
 
         timer = new AnimationTimer() {
@@ -109,27 +154,11 @@ public class StitchAnimator {
                 }
                 double elapsed = now - startTimeNs;
 
-                boolean allDone = true;
-                for (int r = 0; r < size; r++) {
-                    for (int c = 0; c < size; c++) {
-                        double cellElapsed = elapsed - startDelays[r][c];
-                        if (cellElapsed <= 0) {
-                            opacities[r][c] = 0.0;
-                            allDone = false;
-                        } else if (cellElapsed >= CELL_FADE_NS) {
-                            opacities[r][c] = 1.0;
-                        } else {
-                            // Ease-out: 1 - (1 - t)^2
-                            double t = cellElapsed / CELL_FADE_NS;
-                            opacities[r][c] = 1.0 - (1.0 - t) * (1.0 - t);
-                            allDone = false;
-                        }
-                    }
-                }
+                boolean finished = setElapsed(elapsed);
 
                 onFrame.run();
 
-                if (allDone || elapsed >= TOTAL_DURATION_NS) {
+                if (finished) {
                     stopInternal();
                 }
             }

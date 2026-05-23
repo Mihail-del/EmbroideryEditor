@@ -40,7 +40,7 @@ public class MenuManager {
      */
     public interface MenuCallbacks {
         void onSaveAsJson();
-        void onExportImage(String format, boolean transparentBg);
+        void onExportImage(String format, boolean transparentBg, boolean animated);
         void onBrowseOpenFile();
         void onLoadRecentProject(File file);
         void onHideAllMenus();
@@ -123,21 +123,29 @@ public class MenuManager {
         CheckBox transparentBgCheckbox = new CheckBox("Transparent Background");
         transparentBgCheckbox.getStyleClass().add("custom-checkbox");
 
+        CheckBox animatedCheckbox = new CheckBox("Animated (GIF only)");
+        animatedCheckbox.getStyleClass().add("custom-checkbox");
+
+        HBox checkboxBox = new HBox(15);
+        checkboxBox.setAlignment(Pos.CENTER);
+        checkboxBox.getChildren().addAll(transparentBgCheckbox, animatedCheckbox);
+
         Button pngBtn = new Button(".PNG");
         pngBtn.getStyleClass().addAll("create-grid-btn");
         pngBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
+        pngBtn.disableProperty().bind(animatedCheckbox.selectedProperty());
         pngBtn.setOnAction(e -> {
             hideSaveOptionsMenu();
-            callbacks.onExportImage("png", transparentBgCheckbox.isSelected());
+            callbacks.onExportImage("png", transparentBgCheckbox.isSelected(), false);
         });
 
         Button jpgBtn = new Button(".JPG");
         jpgBtn.getStyleClass().addAll("create-grid-btn");
         jpgBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
-        jpgBtn.disableProperty().bind(transparentBgCheckbox.selectedProperty());
+        jpgBtn.disableProperty().bind(transparentBgCheckbox.selectedProperty().or(animatedCheckbox.selectedProperty()));
         jpgBtn.setOnAction(e -> {
             hideSaveOptionsMenu();
-            callbacks.onExportImage("jpg", false);
+            callbacks.onExportImage("jpg", false, false);
         });
 
         Button gifBtn = new Button(".GIF");
@@ -145,11 +153,11 @@ public class MenuManager {
         gifBtn.setStyle("-fx-padding: 10px 15px; -fx-max-width: 80px; -fx-font-size: 14px;");
         gifBtn.setOnAction(e -> {
             hideSaveOptionsMenu();
-            callbacks.onExportImage("gif", transparentBgCheckbox.isSelected());
+            callbacks.onExportImage("gif", transparentBgCheckbox.isSelected(), animatedCheckbox.isSelected());
         });
 
         imageBtns.getChildren().addAll(pngBtn, jpgBtn, gifBtn);
-        imageBlock.getChildren().addAll(imageLabel, transparentBgCheckbox, imageBtns);
+        imageBlock.getChildren().addAll(imageLabel, checkboxBox, imageBtns);
 
         Button cancelBtn = new Button("Cancel");
         cancelBtn.getStyleClass().addAll("create-grid-btn", "warning-cancel-btn");
