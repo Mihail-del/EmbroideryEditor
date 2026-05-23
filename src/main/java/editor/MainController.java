@@ -74,6 +74,18 @@ public class MainController {
     private HBox verticalSymmetryBox;
 
     @FXML
+    private HBox duplicateLeftBtn;
+
+    @FXML
+    private HBox duplicateRightBtn;
+
+    @FXML
+    private HBox duplicateUpBtn;
+
+    @FXML
+    private HBox duplicateDownBtn;
+
+    @FXML
     private Label gridMinusBtn;
 
     @FXML
@@ -158,6 +170,10 @@ public class MainController {
 
         navManager.setupButtonHoverAnimation(horizontalSymmetryBox);
         navManager.setupButtonHoverAnimation(verticalSymmetryBox);
+        navManager.setupButtonHoverAnimation(duplicateLeftBtn);
+        navManager.setupButtonHoverAnimation(duplicateRightBtn);
+        navManager.setupButtonHoverAnimation(duplicateUpBtn);
+        navManager.setupButtonHoverAnimation(duplicateDownBtn);
 
         if (verticalSymmetryBox != null) {
             verticalSymmetryBox.setOnMouseClicked(e -> {
@@ -170,6 +186,34 @@ public class MainController {
             horizontalSymmetryBox.setOnMouseClicked(e -> {
                 isHorizontalSymmetryActive = !isHorizontalSymmetryActive;
                 drawGrid();
+            });
+        }
+
+        if (duplicateLeftBtn != null) {
+            duplicateLeftBtn.setOnMouseClicked(e -> {
+                gridManager.duplicateLeft();
+                drawStitches();
+            });
+        }
+
+        if (duplicateRightBtn != null) {
+            duplicateRightBtn.setOnMouseClicked(e -> {
+                gridManager.duplicateRight();
+                drawStitches();
+            });
+        }
+
+        if (duplicateUpBtn != null) {
+            duplicateUpBtn.setOnMouseClicked(e -> {
+                gridManager.duplicateUp();
+                drawStitches();
+            });
+        }
+
+        if (duplicateDownBtn != null) {
+            duplicateDownBtn.setOnMouseClicked(e -> {
+                gridManager.duplicateDown();
+                drawStitches();
             });
         }
 
@@ -239,6 +283,10 @@ public class MainController {
 
         navManager.setupButtonHoverAnimation(horizontalSymmetryBox);
         navManager.setupButtonHoverAnimation(verticalSymmetryBox);
+        navManager.setupButtonHoverAnimation(duplicateLeftBtn);
+        navManager.setupButtonHoverAnimation(duplicateRightBtn);
+        navManager.setupButtonHoverAnimation(duplicateUpBtn);
+        navManager.setupButtonHoverAnimation(duplicateDownBtn);
 
         navManager.setupButtonHoverAnimation(gridMinusBtn);
         navManager.setupButtonHoverAnimation(gridPlusBtn);

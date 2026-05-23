@@ -142,4 +142,52 @@ public class GridManager {
         }
         return stitches;
     }
+
+    /**
+     * Duplicates the right half of the canvas to the left half.
+     */
+    public void duplicateLeft() {
+        int half = gridSize / 2;
+        for (int r = 0; r < gridSize; r++) {
+            for (int c = 0; c < half; c++) {
+                stitchColors[r][c] = stitchColors[r][c + half];
+            }
+        }
+    }
+
+    /**
+     * Duplicates the left half of the canvas to the right half.
+     */
+    public void duplicateRight() {
+        int half = gridSize / 2;
+        for (int r = 0; r < gridSize; r++) {
+            for (int c = 0; c < half; c++) {
+                stitchColors[r][c + half] = stitchColors[r][c];
+            }
+        }
+    }
+
+    /**
+     * Duplicates the bottom half of the canvas to the top half.
+     */
+    public void duplicateUp() {
+        int half = gridSize / 2;
+        for (int r = 0; r < half; r++) {
+            for (int c = 0; c < gridSize; c++) {
+                stitchColors[r][c] = stitchColors[r + half][c];
+            }
+        }
+    }
+
+    /**
+     * Duplicates the top half of the canvas to the bottom half.
+     */
+    public void duplicateDown() {
+        int half = gridSize / 2;
+        for (int r = 0; r < half; r++) {
+            for (int c = 0; c < gridSize; c++) {
+                stitchColors[r + half][c] = stitchColors[r][c];
+            }
+        }
+    }
 }
