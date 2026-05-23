@@ -121,14 +121,12 @@ public class MainController {
     private MenuManager menuManager;
     private ThreadPaletteManager paletteManager;
     private final NavigationManager navManager = new NavigationManager();
+    private StitchInteractionHandler stitchHandler;
 
     private boolean isVerticalSymmetryActive = false;
     private boolean isHorizontalSymmetryActive = false;
 
-    private boolean isEraserActive = false;
     private Runnable pendingAction;
-
-    private static final double GRID_PADDING = 12.0;
 
     @FXML
     public void initialize() {
@@ -155,8 +153,7 @@ public class MainController {
             drawGrid();
         }
 
-        setupStitchLayer();
-        resetStitches();
+
 
         navManager.setupButtonHoverAnimation(horizontalSymmetryBox);
         navManager.setupButtonHoverAnimation(verticalSymmetryBox);
@@ -248,7 +245,9 @@ public class MainController {
         navManager.setupButtonHoverAnimation(gridPlusBtn);
 
         if (clearCanvasBtn != null) {
-            clearCanvasBtn.setOnMouseClicked(e -> clearCanvas());
+            clearCanvasBtn.setOnMouseClicked(e -> {
+                if (stitchHandler != null) stitchHandler.clearCanvas();
+            });
         }
 
         if (eraserBtn != null) {
@@ -302,6 +301,17 @@ public class MainController {
         }
 
         menuManager.initAllMenus();
+
+        stitchHandler = new StitchInteractionHandler(
+                gridManager,
+                () -> paletteManager != null ? paletteManager.getCurrentThreadColor() : null,
+                () -> isVerticalSymmetryActive,
+                () -> isHorizontalSymmetryActive,
+                () -> menuManager != null && menuManager.isCreateMenuVisible(),
+                this::drawStitches
+        );
+        stitchHandler.setupStitchLayer(stitchCanvas, mainCanvasView);
+        stitchHandler.clearCanvas();
 
         Timeline autoSaveTimeline = new Timeline(
             new KeyFrame(Duration.seconds(10), e -> {
@@ -411,25 +421,7 @@ public class MainController {
         }
     }
 
-    private void setupStitchLayer() {
-        if (stitchCanvas == null || mainCanvasView == null) {
-            return;
-        }
-        stitchCanvas.widthProperty().bind(mainCanvasView.widthProperty());
-        stitchCanvas.heightProperty().bind(mainCanvasView.heightProperty());
-        stitchCanvas.widthProperty().addListener((obs, oldVal, newVal) -> drawStitches());
-        stitchCanvas.heightProperty().addListener((obs, oldVal, newVal) -> drawStitches());
-        stitchCanvas.setOnMouseClicked(e -> handleStitchClick(e.getX(), e.getY()));
-    }
 
-    private void resetStitches() {
-        gridManager.resetStitches();
-        drawStitches();
-    }
-
-    private void clearCanvas() {
-        resetStitches();
-    }
 
     private String getProjectName() {
         return (projectNameField != null && projectNameField.getText() != null && !projectNameField.getText().trim().isEmpty())
@@ -453,7 +445,9 @@ public class MainController {
             gridSizeLabel.setText(gridManager.getGridSize() + " x " + gridManager.getGridSize());
         }
 
-        resetStitches();
+        if (stitchHandler != null) {
+            stitchHandler.clearCanvas();
+        }
 
         for (ProjectData.StitchData stitch : data.getStitches()) {
             if (gridManager.isValidCoordinate(stitch.row(), stitch.col()) && stitch.color() != null) {
@@ -512,64 +506,16 @@ public class MainController {
 
     private void showCreateMenu() {
         menuManager.hideAllMenus();
-        clearCanvas();
+        if (stitchHandler != null) {
+            stitchHandler.clearCanvas();
+        }
         menuManager.showCreateMenu();
     }
 
     private void toggleEraser() {
-        isEraserActive = !isEraserActive;
-        if (eraserBtn != null) {
-            if (isEraserActive) {
-                eraserBtn.getStyleClass().add("eraser-active");
-            } else {
-                eraserBtn.getStyleClass().remove("eraser-active");
-            }
+        if (stitchHandler != null) {
+            stitchHandler.toggleEraser(eraserBtn);
         }
-    }
-
-    private void handleStitchClick(double x, double y) {
-        if (menuManager.isCreateMenuVisible()) {
-            return;
-        }
-        if (stitchCanvas == null) {
-            return;
-        }
-
-        double width = stitchCanvas.getWidth();
-        double height = stitchCanvas.getHeight();
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-
-        double innerWidth = Math.max(0, width - (GRID_PADDING * 2));
-        double innerHeight = Math.max(0, height - (GRID_PADDING * 2));
-        if (innerWidth <= 0 || innerHeight <= 0) {
-            return;
-        }
-
-        double cellSize = Math.min(innerWidth, innerHeight) / gridManager.getGridSize();
-        double gx = x - GRID_PADDING;
-        double gy = y - GRID_PADDING;
-        if (gx < 0 || gy < 0) {
-            return;
-        }
-
-        int col = (int) Math.floor(gx / cellSize);
-        int row = (int) Math.floor(gy / cellSize);
-        if (col < 0 || col >= gridManager.getGridSize() || row < 0 || row >= gridManager.getGridSize()) {
-            return;
-        }
-
-        if (isEraserActive) {
-            gridManager.applyStitchWithSymmetry(row, col, null, isVerticalSymmetryActive, isHorizontalSymmetryActive);
-        } else {
-            Color threadColor = paletteManager.getCurrentThreadColor();
-            if (threadColor == null || threadColor.equals(Color.TRANSPARENT)) {
-                return;
-            }
-            gridManager.applyStitchWithSymmetry(row, col, threadColor, isVerticalSymmetryActive, isHorizontalSymmetryActive);
-        }
-        drawStitches();
     }
 
 
