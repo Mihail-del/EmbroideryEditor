@@ -25,6 +25,7 @@ public class RenderEngine {
     private final Map<String, Image> tintCache = new HashMap<>();
 
     private String previewDirection = null;
+    private StitchAnimator animator = null;
 
     private static final double DOT_RADIUS = 1.5;
     private static final double GRID_PADDING = 12.0;
@@ -43,6 +44,10 @@ public class RenderEngine {
 
     public String getPreviewDirection() {
         return previewDirection;
+    }
+
+    public void setAnimator(StitchAnimator animator) {
+        this.animator = animator;
     }
 
     private void loadCrossImage() {
@@ -143,6 +148,14 @@ public class RenderEngine {
                 }
 
                 if (color == null) continue;
+
+                // Apply animator opacity when animation is active
+                if (animator != null && animator.isAnimating()) {
+                    double opacity = animator.getOpacity(row, col);
+                    color = new Color(color.getRed(), color.getGreen(), color.getBlue(),
+                            color.getOpacity() * opacity);
+                    if (color.getOpacity() <= 0.0) continue;
+                }
 
                 Image paintImage = getTintedImage(color);
                 double x = GRID_PADDING + (col * cellSize) + (cellSize - imageSize) / 2.0;

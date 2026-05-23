@@ -56,6 +56,9 @@ public class MainController {
     private Label eraserBtn;
 
     @FXML
+    private Label animateBtn;
+
+    @FXML
     private StackPane canvasContainer;
 
     @FXML
@@ -138,6 +141,7 @@ public class MainController {
     private final NavigationManager navManager = new NavigationManager();
     private StitchInteractionHandler stitchHandler;
     private NotificationManager notificationManager;
+    private StitchAnimator stitchAnimator;
 
     private boolean isVerticalSymmetryActive = false;
     private boolean isHorizontalSymmetryActive = false;
@@ -283,8 +287,8 @@ public class MainController {
                     }
 
                     @Override
-                    public void onExportImage(String format, boolean transparentBg) {
-                        handleImageExport(format, transparentBg);
+                    public void onExportImage(String format, boolean transparentBg, boolean animated) {
+                        handleImageExport(format, transparentBg, animated);
                     }
 
                     @Override
@@ -343,9 +347,16 @@ public class MainController {
 
         this.renderEngine = new RenderEngine(gridCanvas, stitchCanvas, gridManager);
 
+        this.stitchAnimator = new StitchAnimator();
+        renderEngine.setAnimator(stitchAnimator);
+
         if (renderEngine != null) {
             renderEngine.drawGrid(isVerticalSymmetryActive, isHorizontalSymmetryActive);
             renderEngine.drawStitches();
+        }
+
+        if (animateBtn != null) {
+            animateBtn.setOnMouseClicked(e -> toggleAnimation());
         }
 
         // Load the start template
@@ -398,11 +409,11 @@ public class MainController {
         if (loadingBar != null) {
             Timeline timeline = new Timeline(
                     new KeyFrame(Duration.ZERO, new KeyValue(loadingBar.progressProperty(), 0.0)),
-                    new KeyFrame(Duration.seconds(5), new KeyValue(loadingBar.progressProperty(), 1.0)));
+                    new KeyFrame(Duration.seconds(3), new KeyValue(loadingBar.progressProperty(), 1.0)));
             timeline.play();
         }
 
-        PauseTransition delay = new PauseTransition(Duration.seconds(0));
+        PauseTransition delay = new PauseTransition(Duration.seconds(3));
         delay.setOnFinished(event -> {
             mainApplicationLayout.getChildren().remove(loadingScreen);
         });
@@ -463,7 +474,7 @@ public class MainController {
         drawStitches();
     }
 
-    private void handleImageExport(String format, boolean isTransparentBg) {
+    private void handleImageExport(String format, boolean isTransparentBg, boolean animated) {
         if (mainCanvasView == null)
             return;
 
@@ -471,6 +482,11 @@ public class MainController {
                 mainApplicationLayout.getScene().getWindow());
         if (file == null)
             return;
+
+        if (animated && format.equalsIgnoreCase("gif")) {
+            exportAnimatedGif(file, isTransparentBg);
+            return;
+        }
 
         // Temporarily disable symmetry lines for clean export
         boolean prevVertical = isVerticalSymmetryActive;
@@ -502,6 +518,78 @@ public class MainController {
         projectService.exportImage(snapshot, format, file);
     }
 
+    private void exportAnimatedGif(File file, boolean isTransparentBg) {
+        if (mainCanvasView == null) return;
+        
+        boolean prevVertical = isVerticalSymmetryActive;
+        boolean prevHorizontal = isHorizontalSymmetryActive;
+        isVerticalSymmetryActive = false;
+        isHorizontalSymmetryActive = false;
+        drawGrid();
+
+        String originalStyle = mainCanvasView.getStyle();
+        boolean originalGridVisible = gridCanvas.isVisible();
+
+        if (isTransparentBg) {
+            mainCanvasView.setStyle("-fx-background-color: transparent; -fx-border-width: 0; -fx-effect: none;");
+            gridCanvas.setVisible(false);
+        }
+
+        SnapshotParameters params = new SnapshotParameters();
+        params.setFill(javafx.scene.paint.Color.TRANSPARENT);
+
+        StitchAnimator exporterAnimator = new StitchAnimator();
+        exporterAnimator.setup(gridManager);
+        
+        StitchAnimator originalAnimator = this.stitchAnimator;
+        renderEngine.setAnimator(exporterAnimator);
+
+        try {
+            javax.imageio.stream.ImageOutputStream output = new javax.imageio.stream.FileImageOutputStream(file);
+            int delayMs = 50; // 20 fps
+            editor.util.GifSequenceWriter writer = new editor.util.GifSequenceWriter(output, java.awt.image.BufferedImage.TYPE_INT_ARGB, delayMs, true);
+
+            double totalNs = exporterAnimator.getTotalDurationNs();
+            double stepNs = delayMs * 1_000_000.0;
+
+            for (double t = 0; t <= totalNs + stepNs; t += stepNs) {
+                exporterAnimator.setElapsed(t);
+                renderEngine.drawStitches();
+                
+                WritableImage fxImage = mainCanvasView.snapshot(params, null);
+                java.awt.image.BufferedImage awtImage = javafx.embed.swing.SwingFXUtils.fromFXImage(fxImage, null);
+                
+                if (!isTransparentBg) {
+                    java.awt.image.BufferedImage rgbImage = new java.awt.image.BufferedImage(
+                            awtImage.getWidth(), awtImage.getHeight(), java.awt.image.BufferedImage.TYPE_INT_RGB);
+                    java.awt.Graphics2D g2d = rgbImage.createGraphics();
+                    g2d.setColor(java.awt.Color.WHITE);
+                    g2d.fillRect(0, 0, rgbImage.getWidth(), rgbImage.getHeight());
+                    g2d.drawImage(awtImage, 0, 0, null);
+                    g2d.dispose();
+                    awtImage = rgbImage;
+                }
+
+                writer.writeToSequence(awtImage);
+            }
+            writer.close();
+            output.close();
+            System.out.println("Exported Animated GIF to: " + file.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (isTransparentBg) {
+                mainCanvasView.setStyle(originalStyle != null ? originalStyle : "");
+                gridCanvas.setVisible(originalGridVisible);
+            }
+            isVerticalSymmetryActive = prevVertical;
+            isHorizontalSymmetryActive = prevHorizontal;
+            renderEngine.setAnimator(originalAnimator);
+            drawGrid();
+            drawStitches();
+        }
+    }
+
     private void showCreateMenu() {
         menuManager.hideAllMenus();
         if (stitchHandler != null) {
@@ -513,6 +601,36 @@ public class MainController {
     private void toggleEraser() {
         if (stitchHandler != null) {
             stitchHandler.toggleEraser(eraserBtn);
+        }
+    }
+
+    private void toggleAnimation() {
+        if (stitchAnimator == null || renderEngine == null) return;
+
+        if (stitchAnimator.isAnimating()) {
+            stitchAnimator.stop();
+            drawStitches();
+            setAnimateButtonActive(false);
+        } else {
+            if (isCanvasClear()) return;
+            setAnimateButtonActive(true);
+            stitchAnimator.play(gridManager, this::drawStitches, () -> {
+                setAnimateButtonActive(false);
+                drawStitches();
+            });
+        }
+    }
+
+    private void setAnimateButtonActive(boolean active) {
+        if (animateBtn == null) return;
+        if (active) {
+            animateBtn.setText("Stop");
+            if (!animateBtn.getStyleClass().contains("animate-btn-active")) {
+                animateBtn.getStyleClass().add("animate-btn-active");
+            }
+        } else {
+            animateBtn.setText("Animate");
+            animateBtn.getStyleClass().remove("animate-btn-active");
         }
     }
 
