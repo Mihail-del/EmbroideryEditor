@@ -29,6 +29,9 @@ public class MainController {
     private StackPane mainApplicationLayout;
 
     @FXML
+    private Label autoSaveLabel;
+
+    @FXML
     private VBox loadingScreen;
 
     @FXML
@@ -316,8 +319,7 @@ public class MainController {
         Timeline autoSaveTimeline = new Timeline(
             new KeyFrame(Duration.seconds(10), e -> {
                 if (!isCanvasClear()) {
-                    String projectName = getProjectName();
-                    projectService.saveProject(projectName, gridManager);
+                    autoSaveProject();
                 }
             })
         );
@@ -354,9 +356,46 @@ public class MainController {
             return;
         }
         if (!isCanvasClear()) {
-            projectService.saveProject(getProjectName(), gridManager);
+            autoSaveProject();
         }
         action.run();
+    }
+
+    private void autoSaveProject() {
+        projectService.saveProject(getProjectName(), gridManager);
+        showAutoSaveNotification();
+    }
+
+    private Timeline autoSaveNotificationTimeline = null;
+
+    private void showAutoSaveNotification() {
+        if (autoSaveLabel == null) return;
+
+        if (autoSaveNotificationTimeline != null) {
+            autoSaveNotificationTimeline.stop();
+        }
+
+        autoSaveLabel.setOpacity(0.0);
+        autoSaveLabel.setTranslateY(-10);
+        autoSaveLabel.setVisible(true);
+
+        autoSaveNotificationTimeline = new Timeline(
+            new KeyFrame(Duration.millis(300),
+                new KeyValue(autoSaveLabel.opacityProperty(), 1.0),
+                new KeyValue(autoSaveLabel.translateYProperty(), 0.0)
+            ),
+            new KeyFrame(Duration.millis(2300),
+                new KeyValue(autoSaveLabel.opacityProperty(), 1.0),
+                new KeyValue(autoSaveLabel.translateYProperty(), 0.0)
+            ),
+            new KeyFrame(Duration.millis(2800),
+                new KeyValue(autoSaveLabel.opacityProperty(), 0.0),
+                new KeyValue(autoSaveLabel.translateYProperty(), -10.0)
+            )
+        );
+
+        autoSaveNotificationTimeline.setOnFinished(e -> autoSaveLabel.setVisible(false));
+        autoSaveNotificationTimeline.play();
     }
 
     private void simulateLoading() {

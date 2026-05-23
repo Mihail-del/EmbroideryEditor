@@ -142,6 +142,12 @@
 
     </HBox>
 
+    <Label fx:id="autoSaveLabel" text="✓ Autosaved" styleClass="autosave-toast" StackPane.alignment="TOP_RIGHT" visible="false">
+        <StackPane.margin>
+            <javafx.geometry.Insets top="15" right="20" bottom="0" left="0"/>
+        </StackPane.margin>
+    </Label>
+
     <VBox fx:id="loadingScreen" styleClass="loading-screen" spacing="20">
         <VBox styleClass="loading-img"></VBox>
         <Label styleClass="author-loading-text" text="Created by Pulov Mykhailo" />
