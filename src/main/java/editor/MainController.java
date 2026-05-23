@@ -12,16 +12,12 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import javafx.scene.effect.DropShadow;
 import javafx.util.Duration;
 import javafx.beans.binding.Bindings;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.SnapshotParameters;
 import java.io.File;
@@ -126,14 +122,7 @@ public class MainController {
     private final ProjectService projectService = new ProjectService();
     private RenderEngine renderEngine;
     private MenuManager menuManager;
-
-    private static final String CIRCLE_COLOR_KEY = "circleBaseColor";
-    private static final String CIRCLE_EMPTY_KEY = "circleIsEmpty";
-    private static final String ACTIVE_CIRCLE_CLASS = "color-circle-active";
-
-    private StackPane activeColorCircle;
-    private ColorPicker threadColorPicker;
-    private Color currentThreadColor = Color.web("#D97757");
+    private ThreadPaletteManager paletteManager;
 
     private static final Color NAV_IDLE_TEXT = Color.web("#F9F9F7");
     private static final Color NAV_ACTIVE_TEXT = Color.web("#D97757");
@@ -284,9 +273,10 @@ public class MainController {
             eraserBtn.setOnMouseClicked(e -> toggleEraser());
         }
 
-        initThreadColorPicker();
+        paletteManager = new ThreadPaletteManager(mainApplicationLayout);
+        paletteManager.initColorPicker();
 
-        menuManager = new MenuManager(mainCanvasView, createMenu, threadColorPicker, new MenuManager.MenuCallbacks() {
+        menuManager = new MenuManager(mainCanvasView, createMenu, paletteManager.getColorPicker(), new MenuManager.MenuCallbacks() {
             @Override
             public void onSaveAsJson() {
                 projectService.saveProjectAsJson(getProjectName(), gridManager,
@@ -314,17 +304,19 @@ public class MainController {
             }
         });
 
-        setupColorCircleAnimations(colorCircle1, Color.web("#D97757"));
-        setupColorCircleAnimations(colorCircle2, Color.web("#F4AAA9"));
-        setupColorCircleAnimations(colorCircle3, Color.TRANSPARENT);
-        setupColorCircleAnimations(colorCircle4, Color.TRANSPARENT);
-        setupColorCircleAnimations(colorCircle5, Color.TRANSPARENT);
-        setupColorCircleAnimations(colorCircle6, Color.TRANSPARENT);
-        setupColorCircleAnimations(colorCircle7, Color.TRANSPARENT);
-        setupColorCircleAnimations(colorCircle8, Color.TRANSPARENT);
+        paletteManager.setHideAllMenusCallback(() -> menuManager.hideAllMenus());
+
+        paletteManager.setupColorCircle(colorCircle1, Color.web("#D97757"));
+        paletteManager.setupColorCircle(colorCircle2, Color.web("#F4AAA9"));
+        paletteManager.setupColorCircle(colorCircle3, Color.TRANSPARENT);
+        paletteManager.setupColorCircle(colorCircle4, Color.TRANSPARENT);
+        paletteManager.setupColorCircle(colorCircle5, Color.TRANSPARENT);
+        paletteManager.setupColorCircle(colorCircle6, Color.TRANSPARENT);
+        paletteManager.setupColorCircle(colorCircle7, Color.TRANSPARENT);
+        paletteManager.setupColorCircle(colorCircle8, Color.TRANSPARENT);
 
         if (colorCircle1 != null) {
-            setActiveThreadCircle(colorCircle1);
+            paletteManager.setActiveCircle(colorCircle1);
         }
 
         menuManager.initAllMenus();
@@ -435,138 +427,7 @@ public class MainController {
         node.setOnMouseExited(e -> animateBackground(node, HOVER_COLOR, IDLE_COLOR, false));
     }
 
-    private void setupColorCircleAnimations(StackPane pane, Color baseColor) {
-        if (pane == null) return;
-        boolean isEmpty = baseColor.equals(Color.TRANSPARENT);
-        setCircleState(pane, baseColor, isEmpty);
 
-        pane.setOnMouseEntered(e -> animateCircleHover(pane, getCircleColor(pane), isCircleEmpty(pane), true));
-        pane.setOnMouseExited(e -> animateCircleHover(pane, getCircleColor(pane), isCircleEmpty(pane), false));
-
-        pane.setOnMouseClicked(e -> {
-            if (isCircleEmpty(pane)) {
-                // If it's an empty slot (+), any mouse click makes it active and shows the palette
-                setActiveThreadCircle(pane);
-                openThreadColorPicker(pane);
-            } else {
-                // If it already has a color
-                if (e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-                    // Left click: Only make it active
-                    setActiveThreadCircle(pane);
-                } else if (e.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
-                    // Right click: Make it active AND open palette to replace the color
-                    setActiveThreadCircle(pane);
-                    openThreadColorPicker(pane);
-                }
-            }
-        });
-    }
-
-    private void initThreadColorPicker() {
-        if (mainApplicationLayout == null) {
-            return;
-        }
-        threadColorPicker = new ColorPicker();
-        threadColorPicker.getStyleClass().add("thread-color-picker");
-        threadColorPicker.setManaged(false);
-        threadColorPicker.setVisible(true);
-        threadColorPicker.setOpacity(0.0);
-        threadColorPicker.setPrefSize(0, 0);
-        mainApplicationLayout.getChildren().add(threadColorPicker);
-        threadColorPicker.setOnAction(e -> {
-            if (activeColorCircle == null) {
-                return;
-            }
-            Color selected = threadColorPicker.getValue();
-            if (selected != null) {
-                applyCircleColor(activeColorCircle, selected);
-            }
-        });
-    }
-
-    private void openThreadColorPicker(StackPane pane) {
-        if (threadColorPicker == null || pane == null) {
-            return;
-        }
-        menuManager.hideAllMenus();
-        activeColorCircle = pane;
-        Color current = getCircleColor(pane);
-        if (current == null || current.equals(Color.TRANSPARENT)) {
-            current = Color.WHITE;
-        }
-        threadColorPicker.setValue(current);
-        threadColorPicker.show();
-    }
-
-    private void applyCircleColor(StackPane pane, Color color) {
-        setCircleState(pane, color, false);
-        pane.setStyle("-fx-background-color: " + toRgb(color) + ";");
-        pane.getChildren().removeIf(node -> node instanceof Label && "+".equals(((Label) node).getText()));
-        currentThreadColor = color;
-    }
-
-    private void setCircleState(StackPane pane, Color color, boolean isEmpty) {
-        pane.getProperties().put(CIRCLE_COLOR_KEY, color);
-        pane.getProperties().put(CIRCLE_EMPTY_KEY, isEmpty);
-        if (isEmpty) {
-            if (!pane.getStyleClass().contains("color-empty")) {
-                pane.getStyleClass().add("color-empty");
-            }
-        } else {
-            pane.getStyleClass().remove("color-empty");
-        }
-    }
-
-    private Color getCircleColor(StackPane pane) {
-        Object color = pane.getProperties().get(CIRCLE_COLOR_KEY);
-        return color instanceof Color ? (Color) color : Color.TRANSPARENT;
-    }
-
-    private boolean isCircleEmpty(StackPane pane) {
-        Object empty = pane.getProperties().get(CIRCLE_EMPTY_KEY);
-        return empty instanceof Boolean ? (Boolean) empty : true;
-    }
-
-    private String toRgb(Color color) {
-        return String.format("#%02X%02X%02X",
-                (int) Math.round(color.getRed() * 255),
-                (int) Math.round(color.getGreen() * 255),
-                (int) Math.round(color.getBlue() * 255));
-    }
-
-    private void animateCircleHover(StackPane pane, Color baseColor, boolean isEmpty, boolean isHover) {
-        Transition transition = new Transition() {
-            {
-                setCycleDuration(Duration.millis(300));
-            }
-
-            @Override
-            protected void interpolate(double frac) {
-                if (isEmpty) {
-                    // Just animate a white glow for empty slots
-                    double shadowOpacity = isHover ? 0.3 * frac : 0.3 * (1.0 - frac);
-                    if (shadowOpacity > 0.02) {
-                        pane.setEffect(new DropShadow(10, 0, 0, new Color(1, 1, 1, shadowOpacity)));
-                    } else {
-                        pane.setEffect(null);
-                    }
-                } else {
-                    // Animate colored glow for filled slots
-                    double shadowOpacity = isHover ? (0.35 + 0.4 * frac) : (0.35 + 0.4 * (1.0 - frac));
-                    double glowRadius = isHover ? (6 + 8 * frac) : (6 + 8 * (1.0 - frac));
-
-                    Color shadowColor = new Color(
-                        baseColor.getRed(),
-                        baseColor.getGreen(),
-                        baseColor.getBlue(),
-                        shadowOpacity
-                    );
-                    pane.setEffect(new DropShadow(glowRadius, 0, 0, shadowColor));
-                }
-            }
-        };
-        transition.play();
-    }
 
     private void animateBackground(javafx.scene.Node node, Color from, Color to, boolean isHover) {
         Transition transition = new Transition() {
@@ -804,28 +665,14 @@ public class MainController {
         if (isEraserActive) {
             gridManager.applyStitchWithSymmetry(row, col, null, isVerticalSymmetryActive, isHorizontalSymmetryActive);
         } else {
-            if (currentThreadColor == null || currentThreadColor.equals(Color.TRANSPARENT)) {
+            Color threadColor = paletteManager.getCurrentThreadColor();
+            if (threadColor == null || threadColor.equals(Color.TRANSPARENT)) {
                 return;
             }
-            gridManager.applyStitchWithSymmetry(row, col, currentThreadColor, isVerticalSymmetryActive, isHorizontalSymmetryActive);
+            gridManager.applyStitchWithSymmetry(row, col, threadColor, isVerticalSymmetryActive, isHorizontalSymmetryActive);
         }
         drawStitches();
     }
 
-    private void setActiveThreadCircle(StackPane pane) {
-        if (pane == null) {
-            return;
-        }
-        if (activeColorCircle != null) {
-            activeColorCircle.getStyleClass().remove(ACTIVE_CIRCLE_CLASS);
-        }
-        activeColorCircle = pane;
-        if (!activeColorCircle.getStyleClass().contains(ACTIVE_CIRCLE_CLASS)) {
-            activeColorCircle.getStyleClass().add(ACTIVE_CIRCLE_CLASS);
-        }
-        Color color = getCircleColor(pane);
-        if (color != null && !color.equals(Color.TRANSPARENT)) {
-            currentThreadColor = color;
-        }
-    }
+
 }
