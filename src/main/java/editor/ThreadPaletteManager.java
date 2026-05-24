@@ -38,7 +38,7 @@ public class ThreadPaletteManager {
     }
 
     /**
-     * Sets the callback to invoke when menus should be hidden (before opening the picker).
+     * Sets the callback to invoke when menus should be hidden
      */
     public void setHideAllMenusCallback(Runnable callback) {
         this.hideAllMenusCallback = callback;
@@ -52,7 +52,7 @@ public class ThreadPaletteManager {
     }
 
     /**
-     * Returns the internal ColorPicker instance (needed by MenuManager for hiding).
+     * Returns the internal ColorPicker instance
      */
     public ColorPicker getColorPicker() {
         return threadColorPicker;

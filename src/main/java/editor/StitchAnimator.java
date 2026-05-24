@@ -4,12 +4,10 @@ import javafx.animation.AnimationTimer;
 
 /**
  * Drives a radial "bloom" animation for the stitch canvas.
- * <p>
  * Each filled stitch cell fades from fully transparent to fully opaque,
  * starting at the center of the grid and rippling outward. The delay
  * for each cell is proportional to its Euclidean distance from the
  * grid center.
- * </p>
  */
 public class StitchAnimator {
 

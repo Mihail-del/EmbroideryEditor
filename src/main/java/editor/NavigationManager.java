@@ -9,9 +9,6 @@ import javafx.util.Duration;
 /**
  * Manages the top navigation bar labels: hover animations, active state tracking,
  * and animated button background effects for symmetry/grid controls.
- *
- * <p>This class follows the Single Responsibility Principle by isolating
- * navigation styling and animation logic from the main controller.</p>
  */
 public class NavigationManager {
 
@@ -33,7 +30,7 @@ public class NavigationManager {
     private Label activeNavLabel;
 
     /**
-     * Sets the initially-active navigation label (looked up from CSS).
+     * Sets the initially-active navigation label
      *
      * @param activeLabel the label that starts in the active state
      */
