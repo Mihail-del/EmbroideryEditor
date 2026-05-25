@@ -189,9 +189,11 @@
 
     <VBox fx:id="loadingScreen" styleClass="loading-screen" spacing="20">
         <VBox styleClass="loading-img"></VBox>
+        <Label styleClass="title-loading-text" text="Vyshyvanka Editor" />
         <Label styleClass="author-loading-text" text="Created by Pulov Mykhailo" />
         <Label styleClass="loading-text" text="LOADING WORKSPACE..." />
         <ProgressBar fx:id="loadingBar" progress="0.0" prefWidth="400.0" styleClass="loading-bar"/>
+        <Label styleClass="continue-loading-text" text="Press any key to continue" />
     </VBox>
 
 </StackPane>

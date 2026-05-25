@@ -1,6 +1,5 @@
 package editor;
 
-import javafx.animation.PauseTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -24,6 +23,7 @@ import java.io.File;
 import static editor.GridManager.*;
 
 public class MainController {
+
 
     @FXML
     private StackPane mainApplicationLayout;
@@ -422,16 +422,27 @@ public class MainController {
     private void simulateLoading() {
         if (loadingBar != null) {
             Timeline timeline = new Timeline(
-                    new KeyFrame(Duration.ZERO, new KeyValue(loadingBar.progressProperty(), 0.0)),
-                    new KeyFrame(Duration.seconds(3), new KeyValue(loadingBar.progressProperty(), 1.0)));
+                new KeyFrame(Duration.ZERO, new KeyValue(loadingBar.progressProperty(), 0.0)),
+                new KeyFrame(Duration.seconds(2), new KeyValue(loadingBar.progressProperty(), 1.0))
+            );
             timeline.play();
         }
 
-        PauseTransition delay = new PauseTransition(Duration.seconds(3));
-        delay.setOnFinished(event -> {
+        if (loadingScreen == null || mainApplicationLayout == null) return;
+
+        final boolean[] dismissed = {false};
+        Runnable hideLoading = () -> {
+            if (dismissed[0]) return;
+            dismissed[0] = true;
             mainApplicationLayout.getChildren().remove(loadingScreen);
-        });
-        delay.play();
+            loadingScreen.setOnMouseClicked(null);
+            loadingScreen.setOnKeyPressed(null);
+        };
+
+        loadingScreen.setOnMouseClicked(e -> hideLoading.run());
+        loadingScreen.setOnKeyPressed(e -> hideLoading.run());
+        loadingScreen.setFocusTraversable(true);
+        loadingScreen.requestFocus();
     }
 
     private void updateGridSize(int delta) {
