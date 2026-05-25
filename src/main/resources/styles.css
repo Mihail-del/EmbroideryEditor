@@ -174,14 +174,18 @@
     -fx-background-color: -fx-bg-secondary;
     -fx-padding: 10px 20px;
     -fx-background-radius: 8px;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
     -fx-min-width: 160px;
     -fx-alignment: center-left;
 }
 
 .symmetry-active {
     -fx-border-radius: 8px;
-    -fx-border-style: solid;
+    -fx-border-style: solid inside;
     -fx-border-color: #D97757;
+    -fx-border-width: 1px;
 }
 
 .symmetry-text {
