@@ -425,6 +425,7 @@ public class MainController {
                 new KeyFrame(Duration.ZERO, new KeyValue(loadingBar.progressProperty(), 0.0)),
                 new KeyFrame(Duration.seconds(2), new KeyValue(loadingBar.progressProperty(), 1.0))
             );
+            timeline.setDelay(Duration.seconds(1));
             timeline.play();
         }
 
@@ -442,7 +443,6 @@ public class MainController {
         loadingScreen.setOnMouseClicked(e -> hideLoading.run());
         loadingScreen.setOnKeyPressed(e -> hideLoading.run());
         loadingScreen.setFocusTraversable(true);
-        loadingScreen.requestFocus();
     }
 
     private void updateGridSize(int delta) {

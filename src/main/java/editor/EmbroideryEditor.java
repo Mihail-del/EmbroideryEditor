@@ -25,8 +25,9 @@ public class EmbroideryEditor extends Application {
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
-        primaryStage.setAlwaysOnTop(true);
         primaryStage.show();
+        primaryStage.toFront();
+        primaryStage.requestFocus();
     }
 
     public static void main(String[] args) {
